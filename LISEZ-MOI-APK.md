@@ -107,21 +107,63 @@ Transfère le fichier sur l'appareil, puis ouvre-le depuis l'application Fichier
 
 Si un APK de la même application est déjà installé avec une signature différente, désinstalle-le d'abord.
 
+
+---
+
+## L'installation échoue par-dessus une version déjà présente
+
+C'est le piège le plus courant, et il a une cause précise : **Android refuse d'installer une application par-dessus une autre du même nom si les deux ne sont pas signées par la même clé.**
+
+Par défaut, chaque compilation dans le cloud fabrique une clé de débogage neuve. La première installation passe, toutes les suivantes échouent avec « Application non installée » ou « conflit avec un paquet existant ».
+
+### La solution, déjà en place
+
+Le projet contient une clé fixe dans `android/keystore/shotiq.jks`, utilisée par toutes les compilations, en test comme en version. Tous les APK produits à partir de ce dossier sont donc signés de la même façon et s'installent les uns par-dessus les autres.
+
+Le numéro de version monte aussi tout seul : il reprend le numéro d'exécution GitHub, ce qui évite l'autre cause de refus, celle où Android considère que tu tentes d'installer une version plus ancienne.
+
+### Ce qu'il faut faire une fois, maintenant
+
+Les APK que tu as déjà installés portent une signature aléatoire. Il faut donc les désinstaller une dernière fois avant de passer aux nouveaux.
+
+**Avant de désinstaller, exporte tes données.** Ouvre l'application, va dans Réglages, section Sauvegarde, bouton **Sauvegarder** : tu obtiens un fichier JSON. La désinstallation efface tout ce que l'application a stocké, séances et historique compris.
+
+Ensuite : désinstalle SHOT IQ depuis les réglages Android, installe le nouvel APK, puis dans Réglages, **Restaurer**, et choisis ton fichier de sauvegarde.
+
+À partir de là, chaque nouvel APK s'installera par-dessus le précédent sans rien perdre.
+
+### À propos de cette clé
+
+Elle est incluse dans le dossier, mot de passe compris, pour que tout fonctionne sans configuration. C'est un choix assumé pour une application personnelle distribuée de la main à la main.
+
+Si tu publies un jour sur le Play Store, remplace-la par une clé que tu gardes privée :
+
+```bash
+keytool -genkeypair -v -keystore android/keystore/shotiq.jks \
+  -alias shotiq -keyalg RSA -keysize 2048 -validity 10950
+```
+
+Mets alors les mots de passe dans des secrets GitHub plutôt que dans `build.gradle`, et ne versionne plus le fichier `.jks`. Attention : une fois une application publiée, cette clé devient irremplaçable. La perdre, c'est ne plus jamais pouvoir mettre à jour l'application sous le même nom.
+
+---
+
+## Vérifier que deux APK partagent la même signature
+
+Si un doute subsiste, compare leurs empreintes :
+
+```bash
+keytool -printcert -jarfile app-debug.apk | grep SHA256
+```
+
+Deux APK qui s'installent l'un sur l'autre affichent la même ligne SHA256. Celle de la clé fournie commence par `BC:22:24:36`.
+
 ---
 
 ## APK de test et APK de version
 
-L'APK de test est signé avec une clé de débogage commune à tous les projets Android. Il s'installe et fonctionne normalement, mais il ne peut pas être publié sur le Play Store.
+Les deux sont désormais signés par la clé du projet, donc interchangeables à l'installation. L'artefact **shot-iq-apk-test** est celui à utiliser au quotidien ; **shot-iq-apk-version** est compilé sans les outils de débogage, un peu plus léger et plus rapide.
 
-Pour une version publiable, crée ta clé une seule fois :
-
-```bash
-keytool -genkey -v -keystore shotiq.jks -keyalg RSA -keysize 2048 -validity 10000 -alias shotiq
-```
-
-Puis décommente le bloc `signingConfigs` dans `android/app/build.gradle` et la ligne `signingConfig signingConfigs.release` juste en dessous, et compile avec `gradle assembleRelease`.
-
-Sauvegarde le fichier `.jks` et ses mots de passe ailleurs que dans le dépôt : perdre cette clé signifie ne plus jamais pouvoir mettre à jour l'application publiée. Le `.gitignore` fourni exclut déjà les fichiers `.jks` et `.keystore`.
+Pour le Play Store, il faudra remplacer la clé fournie par une clé privée à toi, comme expliqué plus haut.
 
 ---
 
@@ -132,7 +174,7 @@ Modifie `index.html` à la racine, puis :
 - **Méthode 2** : commit et push, l'APK se reconstruit tout seul.
 - **Méthodes 3 et 4** : lance `./synchroniser-web.sh` depuis `android/`, puis recompile.
 
-Pense à incrémenter `versionCode` et `versionName` dans `android/app/build.gradle` à chaque version distribuée, sinon Android refusera l'installation par-dessus la précédente.
+Le `versionCode` se met à jour tout seul en compilation cloud : il suit le numéro d'exécution GitHub. En compilation locale, il vaut 1 par défaut ; tu peux le forcer avec `VERSION_CODE=7 gradle assembleDebug`.
 
 ---
 

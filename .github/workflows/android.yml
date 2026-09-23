@@ -42,10 +42,14 @@ jobs:
 
       - name: Compiler l'APK de test
         working-directory: android
+        env:
+          VERSION_CODE: ${{ github.run_number }}
         run: gradle assembleDebug --no-daemon --stacktrace
 
-      - name: Compiler l'APK de version, non signé
+      - name: Compiler l'APK de version
         working-directory: android
+        env:
+          VERSION_CODE: ${{ github.run_number }}
         run: gradle assembleRelease --no-daemon || true
 
       - name: Publier l'APK de test
@@ -59,7 +63,7 @@ jobs:
       - name: Publier l'APK de version
         uses: actions/upload-artifact@v4
         with:
-          name: shot-iq-apk-version-non-signe
+          name: shot-iq-apk-version
           path: android/app/build/outputs/apk/release/*.apk
           if-no-files-found: ignore
           retention-days: 90

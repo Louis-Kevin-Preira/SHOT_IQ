@@ -2,6 +2,6 @@ android/.gradle/
 android/build/
 android/app/build/
 android/local.properties
-*.keystore
-*.jks
+# la clé du projet est volontairement versionnée : voir LISEZ-MOI-APK.md
+!android/keystore/shotiq.jks
 .DS_Store
