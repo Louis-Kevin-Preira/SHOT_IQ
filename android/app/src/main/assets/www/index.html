@@ -1,0 +1,2248 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" id="metaTheme" content="#0A1730">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Shooting Lab">
+<meta name="mobile-web-app-capable" content="yes">
+<title>SHOT IQ</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="apple-touch-startup-image" href="media/splash-poster.jpg">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+<style>
+  :root{
+    --accent:#22D3DB; --accent2:#2563EB; --accent-ink:#06131F;
+    --made:#22D3DB; --miss:#4458E8; --gold:#FFB020; --danger:#F05A54; --made-ink:#06131F;
+    --bg:#0A1730; --surface:#11223F; --surface-2:#1A2E4F; --chip:#1A2E4F;
+    --ink:#E8F1FA; --mute:#8098BC; --line:#24395F;
+    --glow:rgba(34,211,219,.28); --court:#0E2144; --court-line:#33507E;
+    --shadow:0 10px 30px rgba(0,0,0,.28);
+    --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.45;
+    padding-bottom:94px;-webkit-font-smoothing:antialiased;overscroll-behavior-y:contain;
+    transition:background .35s ease,color .25s ease}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;
+    background:radial-gradient(120% 60% at 50% -10%, var(--glow), transparent 60%);opacity:.9}
+  .wrap{max-width:720px;margin:0 auto;padding:0 16px}
+  h1,h2,h3{margin:0;letter-spacing:-.02em}
+  h1{font-size:26px;font-weight:800}
+  h2{font-size:20px;font-weight:800}
+  h3{font-size:15px;font-weight:700}
+  .num{font-variant-numeric:tabular-nums}
+  .mute{color:var(--mute)}
+  button{font-family:inherit}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  @keyframes pop{0%{transform:scale(.5);opacity:0}65%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+  @keyframes bump{0%{transform:scale(1)}35%{transform:scale(1.16)}100%{transform:scale(1)}}
+  @keyframes flame{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+  @keyframes ripple{from{opacity:.32;transform:scale(.2)}to{opacity:0;transform:scale(2.8)}}
+  @keyframes slideIn{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+  @keyframes draw{to{stroke-dashoffset:0}}
+  @keyframes halo{0%,100%{box-shadow:0 0 0 0 var(--glow)}50%{box-shadow:0 0 0 12px transparent}}
+  @keyframes flashIn{0%{opacity:0}18%{opacity:1}100%{opacity:0}}
+  .view.on{animation:fadeUp .24s ease both}
+  .bump{animation:bump .3s ease}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+  #flash{position:fixed;inset:0;z-index:110;pointer-events:none;opacity:0}
+  #flash.go{animation:flashIn .45s ease-out}
+  #flash.made{background:radial-gradient(70% 45% at 50% 100%, var(--made), transparent 70%)}
+  #flash.missed{background:radial-gradient(70% 45% at 50% 100%, var(--miss), transparent 70%)}
+
+  .top{padding:16px 0 4px}
+  .brand{flex:1;text-align:center;font-size:21px;font-weight:800;letter-spacing:.12em}
+  .brand i{font-style:normal;color:var(--accent)}
+  .banner{display:flex;align-items:center;gap:10px;margin-top:12px;background:var(--surface);
+    border:1px solid var(--line);border-radius:12px;padding:9px 12px;font-size:12px;font-weight:700;
+    letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+  .banner.live{border-color:var(--accent);color:var(--accent);box-shadow:0 0 18px var(--glow)}
+  .banner .flame{padding:2px 8px 2px 6px;font-size:12.5px;border:0;background:transparent}
+  .hello{font-size:24px;margin:16px 0 2px}
+  .toprow{display:flex;align-items:center;gap:10px}
+  .toprow h1{flex:1}
+  .toprow{gap:12px}
+  .flame{display:flex;align-items:center;gap:5px;background:var(--surface);border-radius:99px;
+    padding:6px 12px 6px 9px;font-weight:800;font-size:14px;border:1px solid var(--line)}
+  .flame svg{width:18px;height:18px}
+  .flame.live{box-shadow:0 0 18px var(--glow)}
+  .flame.live svg{animation:flame 2.4s ease-in-out infinite;transform-origin:50% 80%}
+  .iconbtn{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);
+    color:var(--ink);display:grid;place-items:center;cursor:pointer;flex:0 0 auto}
+  .iconbtn svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8}
+  .iconbtn.on{border-color:var(--accent);color:var(--accent);box-shadow:0 0 16px var(--glow)}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px;margin-bottom:16px}
+  .card.glow{box-shadow:0 0 0 1px var(--glow),0 14px 40px var(--glow)}
+  .sechead{display:flex;align-items:center;gap:10px;margin:22px 0 12px}
+  .sechead h2{flex:1}
+  .link{background:none;border:0;color:var(--accent);font-weight:700;font-size:14px;cursor:pointer;padding:0}
+
+  .goalrow{display:flex;align-items:center;gap:8px}
+  .goalrow h3{flex:1}
+  .goalcount{font-size:19px;font-weight:800;color:var(--accent)}
+  .week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:16px;text-align:center}
+  .week .d{font-size:11px;color:var(--mute);margin-bottom:6px}
+  .week .n{width:36px;height:36px;margin:0 auto;border-radius:50%;display:grid;place-items:center;
+    font-size:15px;font-weight:600;color:var(--mute)}
+  .week .n.today{border:2px solid var(--accent);color:var(--ink)}
+  .week .n.done{background:linear-gradient(140deg,var(--accent),var(--accent2));color:var(--accent-ink);
+    font-weight:800;animation:pop .3s ease both;box-shadow:0 0 14px var(--glow)}
+
+  .prog{border-radius:22px;padding:20px;color:var(--accent-ink);position:relative;overflow:hidden;
+    background-color:var(--accent);background-image:linear-gradient(140deg,var(--accent),var(--accent2));
+    box-shadow:0 16px 40px var(--glow)}
+  .prog .deco{position:absolute;right:-40px;top:-30px;width:210px;opacity:.16;pointer-events:none}
+  .prog .kick{font-size:12px;font-weight:700;letter-spacing:.06em;opacity:.92;text-transform:uppercase}
+  .prog .ttl{font-size:17px;font-weight:800;margin-top:4px;max-width:62%;line-height:1.2}
+  .prog .day{font-size:44px;font-weight:900;letter-spacing:-.03em;margin-top:8px;line-height:1}
+  .prog .barwrap{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:13px;font-weight:700}
+  .prog .bar{flex:1;height:7px;border-radius:99px;background:rgba(128,128,128,.35);overflow:hidden}
+  .prog .bar>div{height:100%;background:var(--accent-ink);width:0;transition:width .6s cubic-bezier(.3,.9,.3,1)}
+  .prog .cta{width:100%;margin-top:16px;border:0;border-radius:99px;background:var(--surface);color:var(--ink);
+    font-weight:800;font-size:15px;padding:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px}
+  .prog .cta .arrow{width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-size:14px}
+
+  .chips{display:flex;gap:9px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chips button{flex:0 0 auto;border:1.5px solid var(--line);background:var(--chip);color:var(--mute);
+    border-radius:99px;padding:9px 16px;font-size:14px;font-weight:600;cursor:pointer;transition:.15s}
+  .chips button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);box-shadow:0 0 14px var(--glow)}
+
+  .sess{display:flex;gap:13px;align-items:center;background:var(--surface);border:1px solid var(--line);
+    border-radius:18px;padding:12px;margin-bottom:11px;cursor:pointer;transition:transform .12s,border-color .15s}
+  .sess:active{transform:scale(.99)}
+  .sess .thumb{width:74px;height:74px;border-radius:14px;flex:0 0 auto;overflow:hidden;background:var(--court)}
+  .sess .thumb svg{width:100%;height:100%;display:block}
+  .sess .t{font-weight:700;font-size:15.5px;line-height:1.25}
+  .sess .m{font-size:13px;color:var(--mute);margin-top:3px}
+  .sess .lvl{display:flex;gap:3px;margin-top:6px;align-items:center}
+  .sess .tagx{display:inline-block;font-size:11px;font-weight:700;color:var(--mute);
+    background:var(--surface-2);border-radius:6px;padding:2px 7px}
+  .sess .spark{margin-top:5px;height:22px}
+  .sess .go{margin-left:auto;width:34px;height:34px;border-radius:50%;background:var(--surface-2);
+    display:grid;place-items:center;color:var(--accent);flex:0 0 auto;font-weight:800}
+
+  table{width:100%;border-collapse:collapse;font-size:14.5px}
+  th,td{text-align:left;padding:10px 6px;border-bottom:1px solid var(--line)}
+  tr:last-child td{border-bottom:0}
+  th{color:var(--mute);font-weight:600;font-size:12px}
+  td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+  .pill{display:inline-block;font-size:12px;padding:3px 9px;border-radius:99px;border:1px solid var(--line);color:var(--mute)}
+  .pill.hot{border-color:var(--gold);color:var(--gold)}
+  .pill.ok{border-color:var(--made);color:var(--made)}
+  .pill.cold{border-color:var(--accent);color:var(--accent)}
+  .tutohead{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+  .tutohead .tic{width:42px;height:42px;border-radius:13px;flex:0 0 auto;display:grid;place-items:center;
+    background-image:linear-gradient(140deg,var(--accent),var(--accent2));color:var(--accent-ink);font-weight:800;font-size:18px}
+  .tutodots{display:flex;gap:6px;margin:16px 0 4px}
+  .tutodots i{flex:1;height:4px;border-radius:99px;background:var(--surface-2)}
+  .tutodots i.on{background:var(--accent)}
+  .tutostep{font-size:15px;line-height:1.55;margin:10px 0 0}
+  .tutostep b{color:var(--accent)}
+  .missgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .misscard{background:var(--surface-2);border:1.5px solid transparent;border-radius:14px;padding:12px}
+  .misscard.dom{border-color:var(--miss);box-shadow:0 0 16px rgba(68,88,232,.25)}
+  .misscard i{display:block;font-style:normal;font-size:12px;color:var(--mute);font-weight:600}
+  .misscard b{display:block;font-size:26px;font-weight:800;margin-top:2px}
+  .misscard span{font-size:11.5px;color:var(--mute)}
+  .streakrow{display:flex;align-items:center;gap:16px}
+  .flamebig{display:flex;align-items:center;gap:8px;background:var(--surface-2);border-radius:16px;padding:12px 16px}
+  .flamebig svg{width:34px;height:34px}
+  .flamebig b{font-size:30px;font-weight:800;color:var(--gold)}
+  .kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:11px}
+  .kpi{background:var(--surface-2);border-radius:14px;padding:13px}
+  .kpi b{display:block;font-size:23px;font-weight:800}
+  .kpi i{font-style:normal;font-size:12px;color:var(--mute)}
+  .diag{border-left:3px solid var(--accent);padding:3px 0 3px 12px;margin:12px 0;font-size:14.5px;animation:fadeUp .3s ease both}
+  .empty{color:var(--mute);font-size:14px;padding:10px 0}
+  .note{font-size:13px;color:var(--mute)}
+  .lede{color:var(--mute);font-size:13.5px;margin:0 0 14px}
+  .record{display:flex;align-items:center;gap:10px;border:1px solid var(--gold);border-radius:14px;
+    padding:12px;margin-bottom:12px;background:var(--surface-2)}
+  .record svg{width:22px;height:22px;flex:0 0 auto}
+
+  .btn{border:1.5px solid var(--line);background:var(--surface);color:var(--ink);font-weight:700;
+    border-radius:14px;padding:13px 16px;cursor:pointer;font-size:14.5px;transition:transform .1s}
+  .btn:active{transform:translateY(1px)}
+  .btn.small{padding:9px 13px;font-size:13px;border-radius:11px}
+  .btn.wide{width:100%}
+  .btn.primary{background-image:linear-gradient(140deg,var(--accent),var(--accent2));border-color:transparent;
+    color:var(--accent-ink);box-shadow:0 8px 24px var(--glow)}
+  .btn.quiet{background:transparent}
+  .row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+  .spacer{flex:1}
+
+  input[type=text],input[type=number],input[type=time],textarea,select{width:100%;background:var(--surface-2);
+    border:1px solid var(--line);color:var(--ink);border-radius:13px;padding:12px;font:inherit;font-size:15px}
+  textarea{min-height:80px;resize:vertical}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  label.fld{display:block;font-size:13px;color:var(--mute);margin:14px 0 6px;font-weight:600}
+  .seg{display:flex;gap:4px;background:var(--surface-2);border-radius:13px;padding:4px}
+  .seg button{flex:1;border:0;background:transparent;color:var(--mute);font-size:13.5px;font-weight:700;
+    padding:10px 4px;border-radius:10px;cursor:pointer}
+  .seg button[aria-pressed="true"]{background:var(--surface);color:var(--accent);box-shadow:0 0 14px var(--glow)}
+  .switch{display:flex;align-items:center;gap:10px}
+  .tgl{width:50px;height:29px;border-radius:99px;background:var(--surface-2);border:1px solid var(--line);
+    position:relative;cursor:pointer;flex:0 0 auto;transition:background .2s}
+  .tgl::after{content:"";position:absolute;top:2px;left:2px;width:23px;height:23px;border-radius:50%;
+    background:var(--mute);transition:transform .2s,background .2s}
+  .tgl[aria-pressed="true"]{background-image:linear-gradient(140deg,var(--accent),var(--accent2));border-color:transparent}
+  .tgl[aria-pressed="true"]::after{transform:translateX(21px);background:#fff}
+
+  .pals{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:8px}
+  .pal{border:1.5px solid var(--line);border-radius:14px;padding:11px;cursor:pointer;background:var(--surface-2);
+    display:flex;align-items:center;gap:10px;text-align:left}
+  .pal[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 16px var(--glow)}
+  .pal .sw{width:34px;height:34px;border-radius:10px;flex:0 0 auto}
+  .pal b{display:block;font-size:13.5px;font-weight:700;color:var(--ink)}
+  .pal i{font-style:normal;font-size:11px;color:var(--mute)}
+
+  details{border-bottom:1px solid var(--line)}
+  details:last-child{border-bottom:0}
+  details summary{cursor:pointer;font-weight:700;padding:12px 0;list-style:none;display:flex;gap:10px;align-items:center}
+  details summary::-webkit-details-marker{display:none}
+  details summary .chev{margin-left:auto;color:var(--mute);transition:transform .18s}
+  details[open] summary .chev{transform:rotate(90deg)}
+  details .body{padding:0 0 14px;font-size:14.5px;animation:fadeUp .2s ease both}
+  .fig{background:var(--surface-2);border-radius:14px;padding:10px;margin-bottom:10px}
+  .fig svg{width:100%;height:auto;display:block}
+  .figcap{font-size:12px;color:var(--mute);margin-top:7px;text-align:center}
+
+  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:10px}
+  .cal .cell{aspect-ratio:1;border-radius:10px;background:var(--surface-2);display:grid;place-items:center;
+    font-size:12.5px;color:var(--mute);font-variant-numeric:tabular-nums}
+  .cal .cell.out{opacity:.3}
+  .cal .cell.today{outline:2px solid var(--accent);outline-offset:-2px;color:var(--ink);font-weight:700}
+  .cal .cell.done{background-image:linear-gradient(140deg,var(--accent),var(--accent2));color:var(--accent-ink);font-weight:800}
+  .cal .cell.free{border:1.5px solid var(--accent);color:var(--ink);font-weight:700}
+  .calhead{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;font-size:11px;color:var(--mute);text-align:center}
+
+  .runner{position:fixed;inset:0;z-index:90;background:var(--bg);display:none;flex-direction:column}
+  .runner.on{display:flex;animation:fadeUp .22s ease both}
+  .runner::before{content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(90% 50% at 50% 0%, var(--glow), transparent 65%);opacity:.9;transition:opacity .6s}
+  .runner.running::before{opacity:1.6}
+  .rhead{padding:14px 16px 10px;display:flex;align-items:center;gap:12px;position:relative;z-index:1}
+  .rhead .x{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--surface);
+    color:var(--ink);display:grid;place-items:center;cursor:pointer;font-size:19px;flex:0 0 auto}
+  .rhead .t{flex:1;min-width:0}
+  .rhead .t b{display:block;font-size:15.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rhead .t span{font-size:12.5px;color:var(--mute)}
+  .steps{display:flex;gap:6px;padding:0 16px 8px;position:relative;z-index:1}
+  .steps i{flex:1;height:5px;border-radius:99px;background:var(--surface-2)}
+  .steps i.on{background-image:linear-gradient(90deg,var(--accent),var(--accent2))}
+  .steps i.done{background:var(--accent);opacity:.45}
+  .rbody{flex:1;overflow:auto;padding:6px 16px 16px;max-width:720px;margin:0 auto;width:100%;position:relative;z-index:1}
+  .rfoot{padding:12px 16px calc(14px + env(safe-area-inset-bottom));background:var(--surface);
+    border-top:1px solid var(--line);max-width:720px;margin:0 auto;width:100%;position:relative;z-index:1}
+  .clock{display:grid;place-items:center;margin:8px 0 14px;position:relative}
+  .clock svg{width:218px;height:218px}
+  .clock .cbg{stroke:var(--surface-2)}
+  .clock .cfg{stroke:url(#ringGrad);transition:stroke-dashoffset .9s linear}
+  .clock .ctxt{position:absolute;text-align:center}
+  .clock .ctxt b{display:block;font-size:46px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+  .clock .ctxt i{font-style:normal;font-size:13px;color:var(--mute)}
+  .clock.pulse{animation:halo 2.2s ease-in-out infinite;border-radius:50%}
+  .clock.over .ctxt b{color:var(--made)}
+  .blocklist{margin:0;padding-left:18px;font-size:14.5px}
+  .blocklist li{margin-bottom:7px}
+  .padgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .big{position:relative;overflow:hidden;font-size:19px;font-weight:800;padding:22px 8px;border:0;
+    border-radius:16px;color:#fff;cursor:pointer;transition:transform .09s}
+  .big:active{transform:scale(.97)}
+  .big.made{background-image:linear-gradient(160deg,var(--made),var(--accent2));color:var(--made-ink);
+    box-shadow:0 8px 26px var(--glow)}
+  .big.missed{background-image:linear-gradient(160deg,var(--miss),#2C3BB8);color:#fff;
+    box-shadow:0 8px 26px rgba(40,56,180,.30)}
+  .big.swish{grid-column:1/-1;background:transparent;border:1.5px dashed var(--gold);color:var(--gold);
+    font-size:15px;padding:13px;font-weight:700}
+  .big .rip{position:absolute;left:50%;top:50%;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;
+    background:#fff;animation:ripple .5s ease-out forwards;pointer-events:none}
+  .livebar{display:flex;gap:10px;margin-bottom:12px}
+  .livebar div{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:11px;text-align:center}
+  .livebar div.hot{border-color:var(--gold);box-shadow:0 0 18px rgba(240,180,41,.25)}
+  .livebar b{display:block;font-size:21px;font-weight:800}
+  .livebar i{font-style:normal;font-size:11px;color:var(--mute)}
+  svg.court{width:100%;height:auto;display:block;border-radius:14px;background:var(--court);touch-action:manipulation}
+  .legend{display:flex;gap:13px;font-size:12px;color:var(--mute);margin-top:9px;flex-wrap:wrap;align-items:center}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:99px;margin-right:5px;vertical-align:middle}
+  [data-mode="standard"] .adv{display:none!important}
+  .reportrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .reportrow:last-child{border-bottom:0}
+  .reportrow .bn{width:30px;height:30px;border-radius:9px;background-image:linear-gradient(140deg,var(--accent),var(--accent2));
+    color:var(--accent-ink);display:grid;place-items:center;font-weight:800;font-size:13px;flex:0 0 auto}
+  .reportrow .rt{flex:1;font-size:14.5px;font-weight:600}
+  .reportrow .rv{font-variant-numeric:tabular-nums;font-weight:800}
+
+  .sheet{position:fixed;inset:0;z-index:95;background:rgba(3,8,12,.66);display:none;align-items:flex-end;justify-content:center}
+  .sheet.on{display:flex}
+  .sheet-in{width:100%;max-width:720px;background:var(--surface);border:1px solid var(--line);border-bottom:0;
+    border-radius:22px 22px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));
+    max-height:88vh;overflow:auto;animation:slideIn .24s ease both}
+  .miss-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+  .miss-grid .btn{padding:16px 8px;display:grid;gap:6px;justify-items:center}
+  .miss-grid .btn svg{width:34px;height:26px}
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:112px;z-index:120;
+    background-image:linear-gradient(140deg,var(--accent),var(--accent2));color:var(--accent-ink);
+    padding:12px 18px;border-radius:99px;font-size:14px;font-weight:700;opacity:0;pointer-events:none;
+    transition:opacity .2s,transform .2s;box-shadow:0 10px 30px var(--glow)}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(-6px)}
+  nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:50;background:var(--surface);border-top:1px solid var(--line);
+    display:flex;padding:8px 4px calc(8px + env(safe-area-inset-bottom))}
+  nav.tabs button{flex:1;background:none;border:0;color:var(--mute);font-size:11px;font-weight:700;
+    padding:5px 2px;cursor:pointer;display:grid;gap:4px;justify-items:center}
+  nav.tabs button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;transition:transform .18s}
+  nav.tabs button[aria-current="true"]{color:var(--accent)}
+  nav.tabs button[aria-current="true"] svg{transform:translateY(-2px) scale(1.06);filter:drop-shadow(0 0 8px var(--glow))}
+  .view{display:none}
+  .view.on{display:block}
+
+  /* ---- écran de démarrage : la vidéo Fable, rien d'autre ---- */
+  #splash{position:fixed;inset:0;z-index:200;background:#0A1730}
+  #splash.video{background:#F2F0EC}
+  #splashVid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
+  #splash.video #splashVid{display:block}
+  #splashStill{position:absolute;inset:0;background:#F2F0EC center/cover no-repeat;
+    background-image:url("media/splash-poster.jpg");opacity:0;transition:opacity .3s ease}
+  #splash.still #splashStill{opacity:1}
+  #splash.toapp{background:var(--bg);transition:background .5s ease}
+  #splash.toapp #splashVid,#splash.toapp #splashStill{opacity:0;transition:opacity .45s ease}
+  @keyframes spOut{to{opacity:0;visibility:hidden}}
+  #splashBrand{position:absolute;inset:0;display:none;place-items:center;align-content:center;gap:0;
+    background:#0A1730;opacity:0;transition:opacity .45s ease}
+  #splash.brand #splashBrand{display:grid;opacity:1}
+  #splash.brand #splashVid,#splash.brand #splashStill{opacity:0;transition:opacity .4s ease}
+  #splashBrand .bl{width:min(44vw,190px);height:auto;opacity:0;transform:scale(.86);
+    animation:brIn .6s cubic-bezier(.2,.9,.3,1) .05s forwards}
+  #splashBrand .bw{width:min(62vw,300px);height:auto;margin-top:26px;opacity:0;
+    animation:brUp .55s ease .38s forwards}
+  #splashBrand .bs{position:absolute;bottom:12vh;left:0;right:0;text-align:center;font-size:12px;
+    letter-spacing:.26em;color:#7E96B5;opacity:0;animation:brUp .5s ease .8s forwards}
+  @keyframes brIn{to{opacity:1;transform:scale(1)}}
+  @keyframes brUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){
+    #splash *{animation:none!important;transition:none!important}
+  }
+
+  /* ---- disposition bureau ---- */
+  .navbrand{display:none}
+  .kbd{display:none;font-size:11.5px;color:var(--mute);margin-left:auto}
+  kbd{background:var(--surface-2);border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;
+    padding:1px 6px;font:inherit;font-size:11px;font-weight:700}
+  @media (min-width:900px){
+    body{padding-bottom:0;padding-left:236px}
+    nav.tabs{top:0;bottom:0;left:0;right:auto;width:236px;flex-direction:column;justify-content:flex-start;
+      border-top:0;border-right:1px solid var(--line);padding:20px 14px;gap:4px}
+    nav.tabs button{flex:0 0 auto;width:100%;flex-direction:row;display:flex;align-items:center;gap:12px;
+      justify-content:flex-start;padding:12px 14px;font-size:14px;border-radius:13px}
+    nav.tabs button[aria-current="true"]{background:var(--surface-2)}
+    nav.tabs button[aria-current="true"] svg{transform:none;filter:none}
+    .navbrand{display:flex;align-items:center;gap:10px;padding:4px 10px 18px;font-weight:800;font-size:16px}
+    .navbrand img{width:30px;height:30px;border-radius:9px}
+    .wrap{max-width:1060px;padding:0 30px}
+    .top{padding:26px 0 6px}
+    h1{font-size:30px}
+    .kbd{display:block}
+    #v-home,#v-plan,#v-report,#v-set{display:none}
+    #v-home.on,#v-plan.on,#v-report.on,#v-set.on{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+    #v-home.on>.sechead,#v-home.on>.chips,#v-home.on>#sessList{grid-column:1/-1}
+    #v-home.on>#resumeBox,#v-home.on>.card,#v-home.on>.prog{grid-column:auto}
+    #sessList{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .sess{margin-bottom:0}
+    #v-report.on>.card:first-child{grid-column:1/-1}
+    #v-set.on>.card{grid-column:auto}
+    .runner{left:0}
+    .rhead,.steps{max-width:1060px;margin:0 auto;width:100%;padding-left:30px;padding-right:30px}
+    .rbody{padding:10px 30px 20px}
+    .runner:not(.rep) .rbody{display:grid;grid-template-columns:380px 1fr;gap:20px;align-content:start}
+    .runner:not(.rep) .clock{grid-column:1;margin-top:0}
+    .runner:not(.rep) .livebar{grid-column:1}
+    .runner:not(.rep) .rbody>.card{grid-column:2;margin-bottom:0}
+    .rfoot{padding-left:30px;padding-right:30px}
+    .padgrid{max-width:620px}
+    .toast{bottom:28px;left:auto;right:28px;transform:none}
+    .toast.on{transform:translateY(-6px)}
+    .sheet{align-items:center}
+    .sheet-in{max-width:620px;border-radius:22px;border-bottom:1px solid var(--line);max-height:84vh}
+    .hf .zone b{font-size:56px}
+  }
+  @media (min-width:1280px){ .wrap{max-width:1180px} }
+
+  /* ---- mode mains libres ---- */
+  .hf{position:fixed;inset:0;z-index:105;display:none;flex-direction:row;background:var(--bg);flex-wrap:wrap}
+  .hf.on{display:flex}
+  .hf .zone{flex:1 1 50%;display:grid;place-items:center;cursor:pointer;user-select:none;
+    position:relative;overflow:hidden;z-index:1;padding:64px 8px 132px}
+  .hf .zone b{font-size:38px;font-weight:900;letter-spacing:.04em;opacity:.92}
+  .hf .zone small{display:block;font-size:14px;font-weight:700;opacity:.75;margin-top:6px;text-align:center}
+  .hf .zmade{background:var(--made);color:var(--made-ink)}
+  .hf .zmiss{background:var(--miss);color:#fff}
+  .hf .zone.tapped::after{content:"";position:absolute;inset:0;background:#fff;opacity:.35;animation:flashIn .35s ease-out forwards}
+  .hf .hftop{position:absolute;top:0;left:0;right:0;z-index:4;display:flex;align-items:center;gap:12px;
+    padding:calc(10px + env(safe-area-inset-top)) 12px 10px 18px;
+    background:linear-gradient(180deg,rgba(6,14,26,.62),transparent);
+    color:#fff;font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+  .hf .hftop span{flex:1;text-shadow:0 1px 6px rgba(0,0,0,.4)}
+  .hf .hfx{width:46px;height:46px;border-radius:50%;border:2px solid rgba(255,255,255,.75);
+    background:rgba(6,14,26,.45);color:#fff;font-size:26px;line-height:1;cursor:pointer;flex:0 0 auto}
+  .hf .hfx:active{transform:scale(.94)}
+  .hf .zone b{text-shadow:0 2px 18px rgba(0,0,0,.25)}
+  .hf .zmade{background-image:linear-gradient(160deg,var(--made),var(--accent2));color:var(--made-ink)}
+  .hf .zmiss{background-image:linear-gradient(160deg,var(--miss),#2C3BB8)}
+  .hf .hfbar{position:absolute;z-index:4;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);
+    width:min(92%,420px);display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:18px;
+    background:var(--surface);border:1px solid var(--line);box-shadow:0 14px 40px rgba(0,0,0,.45)}
+  .hf .hfcount{display:flex;gap:18px;flex:1}
+  .hf .hfcount div{text-align:center}
+  .hf .hfcount b{display:block;font-size:28px;font-weight:800;line-height:1}
+  .hf .hfcount i{font-style:normal;font-size:11px;color:var(--mute)}
+  .hf .mic{width:46px;height:46px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;
+    background:var(--surface-2);border:1px solid var(--line);color:var(--mute)}
+  .hf .mic.on{background-image:linear-gradient(140deg,var(--accent),var(--accent2));color:var(--accent-ink);
+    border-color:transparent;box-shadow:0 0 18px var(--glow)}
+  .hf .mic svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.9}
+  .hf .hfbar .big2{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums}
+  .hf .hfbar .sub{font-size:12px;color:var(--mute)}
+  .onb{display:grid;gap:10px}
+  .onb .opt{display:flex;gap:8px;flex-wrap:wrap}
+  .onb .opt button{flex:1;min-width:88px;border:1.5px solid var(--line);background:var(--surface-2);color:var(--ink);
+    border-radius:13px;padding:12px 8px;font-size:14px;font-weight:700;cursor:pointer}
+  .onb .opt button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);box-shadow:0 0 14px var(--glow)}
+
+  /* ---- mode plein soleil ---- */
+  [data-sun="1"]{--bg:#FFFFFF;--surface:#FFFFFF;--surface-2:#F0F2F4;--chip:#F0F2F4;
+    --ink:#000000;--mute:#3A4650;--line:#000000;--glow:transparent;--shadow:none;
+    --court:#FFFFFF;--court-line:#000000}
+  [data-sun="1"] body::before,[data-sun="1"] .runner::before{display:none}
+  [data-sun="1"] .card,[data-sun="1"] .sess,[data-sun="1"] .btn,[data-sun="1"] .livebar div{border-width:2px}
+  [data-sun="1"] .btn,[data-sun="1"] .sess .t,[data-sun="1"] .kpi b{font-weight:800}
+  [data-sun="1"] .big{padding:30px 8px;font-size:22px}
+  [data-sun="1"] .note,[data-sun="1"] .lede,[data-sun="1"] .sess .m{color:#2B3640}
+  [data-sun="1"] .prog{background-image:none;background-color:#000;box-shadow:none}
+  [data-sun="1"] .prog .cta{background:#fff;color:#000;border:2px solid #000}
+  [data-sun="1"] .toast{background-image:none;background:#000;color:#fff}
+</style>
+
+<div id="splash" aria-hidden="true">
+  <video id="splashVid" playsinline muted autoplay preload="auto" poster="media/splash-poster.jpg"></video>
+  <div id="splashStill"></div>
+  <div id="splashBrand">
+    <img class="bl" src="media/brand-logo.png" alt="">
+    <img class="bw" src="media/brand-word.png" alt="SHOT IQ">
+    <div class="bs">PAR FABLE</div>
+  </div>
+</div>
+
+<div id="flash"></div>
+
+<main class="wrap">
+  <div class="top">
+    <div class="toprow">
+      <button class="iconbtn" id="sunBtn" aria-label="Mode plein soleil" title="Mode plein soleil">
+        <svg viewBox="0 0 24 24" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M19.1 4.9l-1.8 1.8M6.7 17.3l-1.8 1.8"/></svg>
+      </button>
+      <div class="brand">SHOT<i>IQ</i></div>
+      <button class="iconbtn" id="openSettings" aria-label="Réglages">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9a2 2 0 1 1-2.8 2.8a1.7 1.7 0 0 0-2.9 1.2a2 2 0 1 1-4 0a1.7 1.7 0 0 0-2.9-1.2a2 2 0 1 1-2.8-2.8A1.7 1.7 0 0 0 3 15a2 2 0 1 1 0-4a1.7 1.7 0 0 0 1.2-2.9a2 2 0 1 1 2.8-2.8A1.7 1.7 0 0 0 10 4.1a2 2 0 1 1 4 0a1.7 1.7 0 0 0 2.9 1.2a2 2 0 1 1 2.8 2.8A1.7 1.7 0 0 0 21 11a2 2 0 1 1 0 4z"/></svg>
+      </button>
+    </div>
+    <div class="banner" id="banner"><span id="bannerTxt"></span><span class="spacer"></span>
+      <div class="flame" id="flame" title="Jours d'affilée">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 3c1.8 3.4.6 5.4-.8 7-1.6 1.8-3.2 3.3-3.2 5.8A4.9 4.9 0 0 0 12 21a5 5 0 0 0 5-5.2c0-3.4-2.4-4.6-2.4-7.6 0 0-1.3 1.2-1.6 2.8C12.4 8.6 13.6 6 12 3z" stroke="var(--gold)" stroke-width="1.6" fill="none"/></svg>
+        <span class="num" id="flameNum">0</span>
+      </div>
+    </div>
+    <h1 id="homeHello" class="hello"></h1>
+  </div>
+
+  <div id="warnBox"></div>
+
+  <div class="view on" id="v-home">
+    <div id="resumeBox"></div>
+    <div class="card">
+      <div class="goalrow">
+        <h3>Objectif de la semaine</h3>
+        <span class="goalcount"><span id="wkDone">0</span><span class="mute" style="font-size:14px">/<span id="wkGoal">4</span></span></span>
+        <button class="iconbtn" id="editGoal" style="width:32px;height:32px" aria-label="Modifier l'objectif">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17z"/></svg>
+        </button>
+      </div>
+      <div class="week" id="weekStrip"></div>
+    </div>
+    <div class="sechead"><h2>Programme</h2><button class="link" id="progMore">Détail ›</button></div>
+    <div class="prog" id="progCard"></div>
+    <div class="sechead"><h2>Séances</h2><button class="link" id="allSess">Tout voir ›</button></div>
+    <div class="chips" id="chips"></div>
+    <div id="sessList"></div>
+  </div>
+
+  <div class="view" id="v-plan">
+    <div class="card" id="planCard"></div>
+    <div class="card" id="calCard">
+      <div class="row" style="margin-bottom:6px"><h3 style="flex:1">Calendrier</h3>
+        <button class="btn small quiet" id="calPrev">‹</button>
+        <b id="calTitle" class="num" style="min-width:118px;text-align:center"></b>
+        <button class="btn small quiet" id="calNext">›</button></div>
+      <div class="calhead"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+      <div class="cal" id="cal"></div>
+      <div class="legend"><span><i class="dot" style="background:var(--accent)"></i>programme</span>
+        <span><i class="dot" style="border:1.5px solid var(--accent)"></i>séance libre</span></div>
+    </div>
+    <div class="card" id="progList"></div>
+  </div>
+
+  <div class="view" id="v-report">
+    <div class="card" id="lastCard"></div>
+    <div class="card" id="mapCard"></div>
+    <div class="card">
+      <h3 style="margin-bottom:12px">Progression</h3>
+      <div id="chart"></div>
+      <div class="legend"><span><i class="dot" id="legA"></i>adresse</span>
+        <span><i class="dot" style="background:var(--made)"></i>lancers francs</span></div>
+    </div>
+    <div class="card" id="streakCard"></div>
+    <div class="card"><h3 style="margin-bottom:12px">Cumul</h3><div id="totals"></div></div>
+    <div class="card"><h3 style="margin-bottom:4px">Historique</h3>
+      <p class="lede">Touche une séance pour ouvrir son rapport.</p><div id="history"></div></div>
+  </div>
+
+  <div class="view" id="v-set">
+    <div class="card">
+      <h3>Installer l'application</h3>
+      <p class="lede" id="installTxt"></p>
+      <button class="btn primary wide" id="installBtn">Installer sur l'écran d'accueil</button>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:4px">Ton profil</h3>
+      <p class="lede">Les consignes, les durées et les objectifs s'y adaptent.</p>
+      <div id="profBox"></div>
+      <button class="btn wide quiet small" id="editProfile" style="margin-top:12px">Modifier mon profil</button>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:4px">Voix et mains libres</h3>
+      <p class="lede">Pour t'entraîner sans regarder l'écran.</p>
+      <div class="switch"><span class="note" style="flex:1">Annonces vocales</span>
+        <button class="tgl" id="voiceTgl" aria-pressed="false" aria-label="Voix"></button></div>
+      <div id="voiceOpts" style="display:none">
+        <label class="fld">Annonce du score tous les</label>
+        <div class="seg" id="voiceEvery">
+          <button data-n="5">5 tirs</button><button data-n="10">10 tirs</button><button data-n="20">20 tirs</button>
+        </div>
+        <div class="switch" style="margin-top:14px"><span class="note" style="flex:1">Annoncer le temps restant du bloc</span>
+          <button class="tgl" id="voiceTimeTgl" aria-pressed="true" aria-label="Temps"></button></div>
+        <button class="btn small quiet wide" id="voiceTest" style="margin-top:12px">Tester la voix</button>
+        <p class="note" style="margin-top:8px" id="voiceState"></p>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:4px">Tutoriels</h3>
+      <p class="lede">Chaque fonction propose son guide à la première utilisation.</p>
+      <div id="tutoList"></div>
+      <button class="btn wide quiet small" id="tutoReset" style="margin-top:12px">Tout réafficher à la prochaine utilisation</button>
+    </div>
+    <div class="card">
+      <h3>Mode de saisie</h3>
+      <p class="lede">Change quand tu veux, même en pleine séance.</p>
+      <div class="seg" id="modeSeg"><button data-mode="standard">Standard</button><button data-mode="avance">Avancé</button></div>
+      <div id="modeDoc" style="margin-top:14px"></div>
+    </div>
+    <div class="card">
+      <h3>Palette</h3>
+      <p class="lede">Chaque palette redéfinit l'accent, le dégradé, le halo et la teinte des fonds.</p>
+      <div class="pals" id="pals"></div>
+      <label class="fld">Couleur libre</label>
+      <div class="row">
+        <input type="color" id="customColor" value="#00C2C7" style="width:54px;height:40px;padding:2px;border-radius:12px;border:1px solid var(--line);background:var(--surface-2)">
+        <span class="note" style="flex:1">La palette complète est générée à partir de cette teinte.</span>
+      </div>
+      <label class="fld">Thème</label>
+      <div class="seg" id="themeSeg"><button data-theme="light">Clair</button><button data-theme="dark">Sombre</button><button data-theme="auto">Auto</button></div>
+      <div class="switch" style="margin-top:16px"><span class="note" style="flex:1">Mode plein soleil (contraste maximal, boutons agrandis)</span>
+        <button class="tgl" id="sunTgl" aria-pressed="false" aria-label="Plein soleil"></button></div>
+    </div>
+    <div class="card">
+      <h3>Rappel d'entraînement</h3>
+      <div class="switch" style="margin-top:10px"><span class="note" style="flex:1">Me rappeler chaque jour</span>
+        <button class="tgl" id="remindTgl" aria-pressed="false" aria-label="Rappel"></button></div>
+      <div class="switch" style="margin-top:14px"><span class="note" style="flex:1">Signal sonore en fin de bloc</span>
+        <button class="tgl" id="soundTgl" aria-pressed="true" aria-label="Son"></button></div>
+      <div id="remindOpts" style="display:none">
+        <label class="fld" for="remindTime">Heure</label>
+        <input type="time" id="remindTime" value="18:00">
+        <p class="note" style="margin-top:8px" id="remindState"></p>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:4px">Guide technique</h3>
+      <p class="lede">Les quatre piliers et la lecture des ratés.</p>
+      <div id="pillars"></div>
+      <div class="fig" style="margin-top:14px" id="missFig"></div>
+      <div id="rules"></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:4px">Sauvegarde</h3>
+      <p class="lede">Tout reste sur cet appareil.</p>
+      <div class="row">
+        <button class="btn small" id="expCsv">CSV pour Excel</button>
+        <button class="btn small" id="expJson">Sauvegarder</button>
+        <button class="btn small quiet" id="impJson">Restaurer</button>
+        <button class="btn small quiet" id="wipe" style="color:var(--danger);border-color:var(--danger)">Effacer</button>
+      </div>
+      <input type="file" id="fileIn" accept="application/json" style="display:none">
+    </div>
+  </div>
+</main>
+
+<div class="runner" id="runner" role="dialog" aria-modal="true">
+  <div class="rhead">
+    <button class="x" id="runClose" aria-label="Fermer">×</button>
+    <div class="t"><b id="runTitle"></b><span id="runSub"></span></div>
+  </div>
+  <div class="steps" id="runSteps"></div>
+  <div class="rbody" id="runBody"></div>
+  <div class="rfoot" id="runFoot"></div>
+</div>
+
+<div class="sheet" id="missSheet" role="dialog" aria-modal="true">
+  <div class="sheet-in">
+    <h2>Le tir est parti où ?</h2>
+    <p class="lede">Un seul geste, et le diagnostic devient possible.</p>
+    <div class="miss-grid" id="missGrid"></div>
+    <button class="btn wide quiet small" data-miss="" style="margin-top:12px">Je n'ai pas vu</button>
+  </div>
+</div>
+<div class="sheet" id="previewSheet" role="dialog" aria-modal="true"><div class="sheet-in" id="previewBody"></div></div>
+<div class="sheet" id="detailSheet" role="dialog" aria-modal="true"><div class="sheet-in" id="detailBody"></div></div>
+<div class="sheet" id="pickSheet" role="dialog" aria-modal="true">
+  <div class="sheet-in">
+    <div class="row"><h2 style="flex:1">Toutes les séances</h2><button class="btn small quiet" data-close="pickSheet">Fermer</button></div>
+    <div id="pickList" style="margin-top:12px"></div>
+  </div>
+</div>
+
+<div class="hf" id="hf" role="dialog" aria-modal="true">
+  <div class="hftop">
+    <span>Mode mains libres</span>
+    <button class="hfx" id="hfExit" aria-label="Quitter le mode mains libres">×</button>
+  </div>
+  <div class="zone zmade" id="hfMade"><div><b id="hfMadeLbl">MARQUÉ (+)</b><small>toute cette moitié</small></div></div>
+  <div class="zone zmiss" id="hfMiss"><div><b id="hfMissLbl">RATÉ (−)</b><small>toute cette moitié</small></div></div>
+  <div class="hfbar">
+    <div class="hfcount">
+      <div><b class="num" id="hfMadeN">0</b><i>marqué</i></div>
+      <div><b class="num" id="hfMissN">0</b><i>raté</i></div>
+      <div><b class="num" id="hfPct">—</b><i id="hfSub">adresse</i></div>
+    </div>
+    <div class="mic" id="hfMic" title="Annonces vocales">
+      <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+    </div>
+    <button class="btn small quiet" id="hfUndo">Annuler</button>
+    <button class="btn small primary" id="hfQuit">Fin</button>
+  </div>
+</div>
+
+<div class="sheet" id="onbSheet" role="dialog" aria-modal="true"><div class="sheet-in" id="onbBody"></div></div>
+<div class="sheet" id="quitSheet" role="dialog" aria-modal="true"><div class="sheet-in" id="quitBody"></div></div>
+<div class="sheet" id="askSheet" role="dialog" aria-modal="true"><div class="sheet-in" id="askBody"></div></div>
+<div class="sheet" id="tutoSheet" role="dialog" aria-modal="true"><div class="sheet-in" id="tutoBody"></div></div>
+
+<div class="toast" id="toast"></div>
+<nav class="tabs" id="tabs"></nav>
+
+<script>
+(function(){
+"use strict";
+function $(id){ return document.getElementById(id); }
+function each(s,f){ Array.prototype.forEach.call(document.querySelectorAll(s),f); }
+function esc(s){ return String(s==null?"":s).replace(/[<>&"]/g,function(c){ return {"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c]; }); }
+
+/* ================= stockage ================= */
+var MEM={},HAS_LS=false;
+try{ localStorage.setItem("__t","1"); localStorage.removeItem("__t"); HAS_LS=true; }catch(e){}
+function store(k,v){
+  if(v===undefined){ try{ return HAS_LS?localStorage.getItem(k):(MEM[k]||null); }catch(e){ return MEM[k]||null; } }
+  try{ if(HAS_LS) localStorage.setItem(k,v); else MEM[k]=v; }catch(e){ MEM[k]=v; }
+}
+if(!HAS_LS) $("warnBox").innerHTML='<div class="card" style="border-color:var(--gold)"><p class="note" style="margin:0">Cet aperçu n\'enregistre rien. Télécharge le fichier et ouvre-le depuis ton téléphone : tes séances y seront gardées.</p></div>';
+
+/* ================= couleurs ================= */
+function hex2rgb(h){ var n=parseInt(h.slice(1),16); return [n>>16&255,n>>8&255,n&255]; }
+function rgb2hex(r,g,b){ return "#"+[r,g,b].map(function(v){ return ("0"+Math.round(Math.max(0,Math.min(255,v))).toString(16)).slice(-2); }).join("").toUpperCase(); }
+function rgb2hsl(r,g,b){ r/=255;g/=255;b/=255;
+  var mx=Math.max(r,g,b),mn=Math.min(r,g,b),h,s,l=(mx+mn)/2,d=mx-mn;
+  if(!d){h=0;s=0;} else { s=l>.5?d/(2-mx-mn):d/(mx+mn);
+    h = mx===r?((g-b)/d+(g<b?6:0)) : mx===g?((b-r)/d+2) : ((r-g)/d+4); h*=60; }
+  return [h,s,l]; }
+function hsl2hex(h,s,l){
+  h=((h%360)+360)%360; s=Math.max(0,Math.min(1,s)); l=Math.max(0,Math.min(1,l));
+  var c=(1-Math.abs(2*l-1))*s,x=c*(1-Math.abs((h/60)%2-1)),m=l-c/2,r=0,g=0,b=0;
+  if(h<60){r=c;g=x;} else if(h<120){r=x;g=c;} else if(h<180){g=c;b=x;}
+  else if(h<240){g=x;b=c;} else if(h<300){r=x;b=c;} else {r=c;b=x;}
+  return rgb2hex((r+m)*255,(g+m)*255,(b+m)*255); }
+function lum(h){ var c=hex2rgb(h).map(function(v){ v/=255; return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4); });
+  return .2126*c[0]+.7152*c[1]+.0722*c[2]; }
+function contrast(a,b){ var l1=lum(a),l2=lum(b);
+  return (Math.max(l1,l2)+.05)/(Math.min(l1,l2)+.05); }
+function rgba(h,a){ var c=hex2rgb(h); return "rgba("+c[0]+","+c[1]+","+c[2]+","+a+")"; }
+function mix(a,b,t){ var A=hex2rgb(a),B=hex2rgb(b);
+  return rgb2hex(A[0]+(B[0]-A[0])*t,A[1]+(B[1]-A[1])*t,A[2]+(B[2]-A[2])*t); }
+
+var PALETTES=[
+ {id:"shotiq",   n:"Shot IQ",   sub:"navy et cyan",    p1:"#22D3DB",p2:"#2563EB",made:"#22D3DB",miss:"#4458E8",gold:"#FFB020",h:216,sd:1.95,ld:.055},
+ {id:"orbital",  n:"Orbital",   sub:"cyan froid",     p1:"#00C2C7",p2:"#0A6FA8",made:"#2ED08A",miss:"#FF5C72",gold:"#F0B429",h:196},
+ {id:"nebuleuse",n:"Nébuleuse", sub:"violet spatial", p1:"#7A5CFF",p2:"#3D2BB3",made:"#34D399",miss:"#FF4D6D",gold:"#FFC24B",h:252},
+ {id:"phosphore",n:"Phosphore", sub:"vert radar",     p1:"#2FDD8B",p2:"#0B8F5F",made:"#2FDD8B",miss:"#FF6B6B",gold:"#FFD166",h:155},
+ {id:"braise",   n:"Braise",    sub:"orange chaud",   p1:"#FF6A4D",p2:"#B0263A",made:"#3FBF86",miss:"#B3123C",gold:"#FFC24B",h:12},
+ {id:"parquet",  n:"Parquet",   sub:"ambre bois",     p1:"#F0A63C",p2:"#C25A1C",made:"#2FA96B",miss:"#D64545",gold:"#FFD166",h:36},
+ {id:"ardoise",  n:"Ardoise",   sub:"neutre discret", p1:"#5B7285",p2:"#2E3E4C",made:"#2E9E6B",miss:"#CC4B5C",gold:"#C9962C",h:207}
+];
+function paletteOf(){
+  if(S.pal==="custom"){
+    var p1=S.custom, hsl=rgb2hsl.apply(null,hex2rgb(p1));
+    return {id:"custom",n:"Personnalisée",p1:p1,p2:hsl2hex(hsl[0]-16,Math.min(1,hsl[1]*1.05),Math.max(.18,hsl[2]*.55)),
+      made:"#2FBF7E",miss:"#E8556A",gold:"#E8B33D",h:hsl[0]};
+  }
+  for(var i=0;i<PALETTES.length;i++) if(PALETTES[i].id===S.pal) return PALETTES[i];
+  return PALETTES[0];
+}
+function applyLook(){
+  var P=paletteOf(), dark=(S.theme==="auto"?(mq&&mq.matches):S.theme==="dark"), r=document.documentElement.style;
+  document.documentElement.setAttribute("data-sun",S.sun?"1":"0");
+  var vars;
+  var sd=P.sd||1, ld=P.ld||0;
+  if(dark){
+    vars={bg:hsl2hex(P.h,.34*sd,.055+ld),surface:hsl2hex(P.h,.26*sd,.095+ld),s2:hsl2hex(P.h,.24*sd,.145+ld),
+      line:hsl2hex(P.h,.22*sd,.22+ld),ink:hsl2hex(P.h,.22,.94),mute:hsl2hex(P.h,Math.min(.30,.14*sd),.66),
+      court:hsl2hex(P.h,.26*sd,.085+ld),cline:hsl2hex(P.h,.18*sd,.33+ld)};
+  } else {
+    vars={bg:hsl2hex(P.h,.26*Math.min(sd,1.4),.965),surface:"#FFFFFF",s2:hsl2hex(P.h,.24*Math.min(sd,1.4),.94),
+      line:hsl2hex(P.h,.20,.89),ink:hsl2hex(P.h,.30,.10),mute:hsl2hex(P.h,.14,.44),
+      court:hsl2hex(P.h,.22,.97),cline:hsl2hex(P.h,.18,.72)};
+  }
+  r.setProperty("--accent",P.p1); r.setProperty("--accent2",P.p2);
+  var mid=mix(P.p1,P.p2,.45);
+  r.setProperty("--accent-ink", contrast("#0A1116",mid)>contrast("#FFFFFF",mid)?"#0A1116":"#FFFFFF");
+  r.setProperty("--made",P.made); r.setProperty("--miss",P.miss); r.setProperty("--gold",P.gold);
+  r.setProperty("--bg",vars.bg); r.setProperty("--surface",vars.surface);
+  r.setProperty("--surface-2",vars.s2); r.setProperty("--chip",vars.s2);
+  r.setProperty("--line",vars.line); r.setProperty("--ink",vars.ink); r.setProperty("--mute",vars.mute);
+  r.setProperty("--court",vars.court); r.setProperty("--court-line",vars.cline);
+  r.setProperty("--glow",rgba(P.p1,dark?.20:.16));
+  r.setProperty("--danger",dark?"#F05A54":"#D4372F");
+  r.setProperty("--made-ink", contrast("#06131F",P.made)>contrast("#FFFFFF",P.made)?"#06131F":"#FFFFFF");
+  $("metaTheme").setAttribute("content",S.sun?"#FFFFFF":vars.bg);
+  each("#themeSeg button",function(b){ b.setAttribute("aria-pressed",String(b.dataset.theme===S.theme)); });
+  each("#pals .pal",function(b){ b.setAttribute("aria-pressed",String(b.dataset.p===S.pal)); });
+  $("sunTgl").setAttribute("aria-pressed",String(!!S.sun));
+  $("sunBtn").classList.toggle("on",!!S.sun);
+  var lg=$("legA"); if(lg) lg.style.background=P.p1;
+  buildManifest();
+}
+var mq=window.matchMedia?window.matchMedia("(prefers-color-scheme: dark)"):null;
+if(mq&&mq.addEventListener) mq.addEventListener("change",function(){ if(S.theme==="auto"){ applyLook(); renderAll(); } });
+
+/* ================= dates ================= */
+function ymd(d){ d=d||new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function parseYmd(s){ var p=s.split("-"); return new Date(+p[0],+p[1]-1,+p[2]); }
+function daysBetween(a,b){ return Math.round((parseYmd(b)-parseYmd(a))/86400000); }
+function frDate(s){ var d=parseYmd(s); return d.getDate()+" "+["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."][d.getMonth()]; }
+function hhmm(d){ return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); }
+function mmss(s){ s=Math.max(0,Math.round(s)); return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0"); }
+function weekStart(d){ d=new Date(d||new Date()); var k=(d.getDay()+6)%7; d.setDate(d.getDate()-k); d.setHours(0,0,0,0); return d; }
+
+/* ================= séances ================= */
+var WARM={t:"Échauffement & alignement",m:10,d:[
+  "30 tirs sur la ligne, sans panier : la balle doit retomber sur la ligne.",
+  "30 form shooting à une main, à 1 m du cercle.",
+  "30 form shooting à deux mains, à 1,5 m."]};
+var FT={t:"Lancers francs",m:5,ft:true,d:[
+  "10 lancers francs, routine stricte à chaque tir.",
+  "Pieds à {H}, flexion, coude sous la balle, geste tenu jusqu'au filet."]};
+function S3(n,cat,lvl,dist,goal,body,warm,ft){
+  return {n:n,cat:cat,lvl:lvl,dist:dist,goal:goal,
+    b:[warm||WARM,{t:"Corps de séance",m:(body.m||20),shoot:true,goal:goal,d:body.d},ft||FT]};
+}
+var SESSIONS=[
+ S3("Alignement & forme","Mécanique",1,"1 – 2 m",110,{m:20,d:[
+  "5 spots block-to-block, à 2 m du panier.","Dix tirs marqués par spot avant de changer.",
+  "Avant chaque tir : regard sur les pieds, tilt à {H}, coude vérifié."]}),
+ S3("Appuis & rythme","Appuis",1,"1 – 2 m",110,{m:20,d:[
+  "Spin catch : auto-passe avec effet autour de la raquette.","Réception en appuis 1-2 gauche-droit.",
+  "Pivot immédiat des pieds à {H}, tir dans la foulée."]}),
+ S3("Exercice de l'élastique","Test",2,"1 – 5 m",110,{m:20,d:[
+  "Départ à un mètre du cercle.","Tir marqué : un pas en arrière. Tir raté : un pas en avant.",
+  "Note la distance où ton geste commence à se déformer."]}),
+ S3("Vitesse réelle au chrono","Intensité",2,"2 – 3 m",110,{m:20,d:[
+  "3 séries de 2 minutes, une minute de récupération entre les séries.",
+  "Rebond pris seul, sortie de raquette, tilt installé vite, tir.","La mécanique doit tenir malgré la cadence."]}),
+ S3("Extension mi-distance","Distance",2,"2 – 3 m",120,{m:20,d:[
+  "5 spots mi-distance proches, à 2,5 m.","La poussée vient des jambes ; les bras ne compensent jamais.",
+  "Dix tirs marqués par spot."]}),
+ S3("Catch & shoot en rythme","Appuis",2,"3 m",120,{m:20,d:[
+  "Spin catch à mi-distance, 3 m.","Réception en mouvement, ancrage 1-2 rapide.",
+  "Pieds à {H} dès la pose, le tir part sans temps mort."]}),
+ S3("Précision & trajectoire","Distance",3,"3 – 4 m",120,{m:20,d:[
+  "Tirs à 3,5 – 4 m sur cinq positions.","Cherche une parabole haute et un backspin régulier.",
+  "La trajectoire compte autant que le résultat."]}),
+ S3("Pull-up une dribble","Création",3,"3 – 4 m",130,{m:20,d:[
+  "Une dribble, puis arrêt franc.","L'arrêt décide de l'équilibre : plus net que le dribble.",
+  "Alterne main droite et main gauche à chaque série."]}),
+ S3("Tour des 5 zones","Zones",2,"3 – 4 m",130,{m:20,d:[
+  "Coin gauche, aile gauche, axe, aile droite, coin droit.","Dix tirs marqués par zone avant de passer à la suivante.",
+  "Repère les zones où le geste change sans que tu le décides."]}),
+ S3("Curl & cut","Mouvement",3,"3 – 4 m",130,{m:20,d:[
+  "Départ en course autour d'un plot ou d'un sac.","Réception en mouvement, épaules ramenées face au cercle.",
+  "Les appuis se posent après que les épaules sont alignées."]}),
+ S3("Tir sous fatigue","Intensité",3,"3 – 4 m",130,{m:20,d:[
+  "5 tirs, sprint jusqu'à la ligne médiane, retour, 5 tirs.","Six allers-retours minimum.",
+  "L'alignement doit survivre à l'essoufflement."]}),
+ S3("Step-back","Création",4,"3 – 5 m",140,{m:20,d:[
+  "Recul contrôlé après dribble.","Le pied arrière se pose avant que la balle ne monte.",
+  "Sinon le tir part court : c'est le signe que tu montes trop tôt."]}),
+ S3("Tir gêné","Match",4,"3 – 4 m",140,{m:20,d:[
+  "Un partenaire lève la main dans ta vue sans contester vraiment.",
+  "Garde ta trajectoire haute plutôt que d'accélérer le geste.",
+  "Sans partenaire : imagine la main et garde le même tempo."]}),
+ S3("Test des 5 zones","Test",3,"3,5 – 4 m",100,{m:20,d:[
+  "20 tirs par zone, comptés séparément.","Aucune correction pendant le test : c'est une photographie.",
+  "Pose bien ton spot sur le terrain pour chaque zone."]}),
+ S3("Spécial lancers francs","Routine",1,"Ligne",0,
+  {m:5,d:["Dix tirs à 1 m pour réveiller le geste, sans forcer."]},
+  {t:"Échauffement court",m:5,d:["Mobilité poignets et épaules.","Dix tirs à un mètre, une main."]},
+  {t:"50 lancers francs",m:20,ft:true,d:["Cinq séries de dix, routine identique à chaque tir.",
+   "Repose la balle au sol entre deux séries.","Note chaque tir : c'est le chiffre le plus honnête de ton niveau."]}),
+ S3("Routine express 20 min","Express",1,"1 – 3 m",60,
+  {m:12,d:["Spots proches, dix tirs marqués par spot.","Priorité au geste, pas au volume."]},
+  {t:"Échauffement court",m:5,d:["20 tirs sur la ligne.","20 form shooting à une main."]},
+  {t:"Lancers francs",m:3,ft:true,d:["10 lancers francs, routine complète."]})
+];
+var PROG=[{s:0,w:1},{s:1,w:1},{s:0,w:1},{s:2,w:1},{s:3,w:1},
+ {s:4,w:2},{s:5,w:2},{s:6,w:2},{s:2,w:2},{s:10,w:2},
+ {s:7,w:3},{s:8,w:3},{s:9,w:3},{s:10,w:3},{s:13,w:3},
+ {s:11,w:4},{s:12,w:4},{s:8,w:4},{s:2,w:4},{s:13,w:4}];
+var PHASES=["Reconstruction de la mécanique","Extension vers le middle range","Middle range en mouvement","Intensité et tests finaux"];
+var ZONES=["Coin gauche","Aile gauche","Axe","Aile droite","Coin droit"];
+var CATS=["Tout","Mécanique","Appuis","Distance","Création","Mouvement","Intensité","Zones","Test","Match","Routine","Express"];
+var MODEDOC='<h3 style="font-size:14.5px">Mode Standard — seul</h3>'+
+ '<p class="note"><b>Objectif :</b> saisie express en dix secondes.<br><b>À entrer :</b> tirs tentés, tirs réussis, lancers francs, forme.<br>'+
+ '<b>Avantage :</b> aucune interruption du rythme de shoot ; les pourcentages se calculent seuls.</p>'+
+ '<h3 style="font-size:14.5px;margin-top:14px">Mode Avancé — accompagné</h3>'+
+ '<p class="note"><b>Objectif :</b> analyse chirurgicale avec un rebondeur, un ami ou un coach.<br>'+
+ '<b>À entrer :</b> tentés et réussis, ficelles, série maximale, direction des ratés, lien vidéo.<br>'+
+ '<b>Avantage :</b> diagnostic automatique et carte de chaleur des zones.</p>';
+
+/* ================= illustrations ================= */
+function thumb(i){
+  var a="var(--accent)",l="var(--court-line)";
+  var arcs=['<path d="M14 58 C 30 18, 56 18, 66 40" fill="none" stroke="'+a+'" stroke-width="3"/>',
+   '<path d="M12 62 C 26 26, 54 24, 68 34" fill="none" stroke="'+a+'" stroke-width="3" stroke-dasharray="5 5"/>',
+   '<path d="M10 64 C 22 20, 58 20, 70 52" fill="none" stroke="'+a+'" stroke-width="3"/>'];
+  return '<svg viewBox="0 0 80 80"><rect width="80" height="80" fill="var(--court)"/>'+
+   '<line x1="0" y1="66" x2="80" y2="66" stroke="'+l+'" stroke-width="2"/>'+
+   '<rect x="26" y="66" width="28" height="12" fill="none" stroke="'+l+'" stroke-width="1.6"/>'+
+   arcs[i%3]+'<circle cx="68" cy="'+(34+(i%3)*8)+'" r="6" fill="none" stroke="'+a+'" stroke-width="2.4"/>'+
+   '<circle cx="14" cy="'+(58+(i%2)*4)+'" r="5" fill="'+a+'" opacity=".35"/></svg>';
+}
+function deco(){ return '<svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" fill="none" stroke="currentColor" stroke-width="5"/><path d="M8 60h104M60 8c18 24 18 80 0 104M60 8C42 32 42 88 60 112" fill="none" stroke="currentColor" stroke-width="5"/></svg>'; }
+function bolt(on){ return '<svg viewBox="0 0 24 24" width="13" height="13" fill="'+(on?"var(--accent)":"var(--surface-2)")+'"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>'; }
+function trophy(){ return '<svg viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 5H5v2a3 3 0 0 0 3 3M16 5h3v2a3 3 0 0 1-3 3"/><path d="M12 13v4M9 20h6M10 17h4"/></svg>'; }
+function figTilt(){
+  var g=(S.profile.hand==="gaucher"),sx=g?-1:1,bx=g?68:232,tx=g?100:156;
+  return '<svg viewBox="0 0 300 130"><line x1="40" y1="112" x2="260" y2="112" stroke="var(--court-line)" stroke-width="2"/>'+
+   '<g transform="translate(150,96) rotate('+(g?24:-24)+')"><ellipse cx="'+(-14*sx)+'" cy="0" rx="11" ry="20" fill="var(--accent)" opacity=".75"/>'+
+   '<ellipse cx="'+(14*sx)+'" cy="-10" rx="11" ry="20" fill="var(--accent)"/></g>'+
+   '<path d="M150 88 L'+(150+76*sx)+' 24" stroke="var(--accent)" stroke-width="2" stroke-dasharray="5 5"/>'+
+   '<circle cx="'+bx+'" cy="20" r="9" fill="none" stroke="var(--court-line)" stroke-width="3"/>'+
+   '<text x="'+tx+'" y="44" fill="var(--mute)" font-size="12" text-anchor="'+(g?"end":"start")+'">panier</text></svg>';
+}
+function figFeet(){
+  var g=(S.profile.hand==="gaucher");
+  return '<svg viewBox="0 0 300 130"><line x1="40" y1="110" x2="260" y2="110" stroke="var(--court-line)" stroke-width="2"/>'+
+   '<ellipse cx="122" cy="82" rx="12" ry="22" fill="var(--accent)" opacity=".6"/><ellipse cx="168" cy="62" rx="12" ry="22" fill="var(--accent)"/>'+
+   '<line x1="100" y1="62" x2="200" y2="62" stroke="var(--mute)" stroke-width="1" stroke-dasharray="4 4"/>'+
+   '<line x1="100" y1="82" x2="200" y2="82" stroke="var(--mute)" stroke-width="1" stroke-dasharray="4 4"/>'+
+   '<text x="206" y="66" fill="var(--mute)" font-size="12">pied '+(g?"gauche":"droit")+'</text>'+
+   '<text x="206" y="86" fill="var(--mute)" font-size="12">pied '+(g?"droit":"gauche")+'</text></svg>';
+}
+var PILLARS=[
+ ["Le tilt, pieds à {H}","Tourne les pieds de 20 à 30° vers la {SENS}. Épaule, coude et main s'alignent d'un coup avec le centre du cercle.",
+  figTilt,"Pieds ouverts vers {H}, hanches et épaules suivent."],
+ ["Pied fort avancé","Avance le pied {PIED} : les orteils du pied {PIEDF} arrivent au milieu du pied {PIED}.",
+  figFeet,"Décalage court : assez pour l'équilibre, pas plus."],
+ ["Coude dans l'axe","Coude {COUDE} sous le ballon, à 90°. Pas de coude qui s'échappe vers l'extérieur.",
+  '<svg viewBox="0 0 300 130"><g stroke="var(--accent)" stroke-width="6" fill="none" stroke-linecap="round"><path d="M120 112V70"/><path d="M120 70L152 44"/></g><circle cx="166" cy="34" r="17" fill="none" stroke="var(--accent)" stroke-width="3"/><path d="M149 34h34M166 17v34" stroke="var(--accent)" stroke-width="1.4"/><path d="M120 70 m -16 0 a 16 16 0 0 0 16 16" fill="none" stroke="var(--mute)" stroke-width="2"/><text x="66" y="92" fill="var(--mute)" font-size="12">90°</text><g stroke="var(--miss)" stroke-width="4" fill="none" opacity=".55" stroke-linecap="round"><path d="M228 112V74"/><path d="M228 74L196 52"/></g><text x="192" y="126" fill="var(--miss)" font-size="12">coude sorti</text></svg>',
+  "À gauche le bon axe, à droite le défaut à éviter."],
+ ["Follow-through tenu","Poignet cassé maintenu en l'air jusqu'à ce que la balle touche le filet. Index et majeur pointent le bas du cercle.",
+  '<svg viewBox="0 0 300 130"><g stroke="var(--accent)" stroke-width="6" fill="none" stroke-linecap="round"><path d="M96 118L112 52"/></g><path d="M112 52 q10 -14 26 -8 q-6 16 -20 22 z" fill="var(--accent)" opacity=".85"/><g stroke="var(--accent)" stroke-width="3" stroke-linecap="round"><path d="M132 64L150 78"/><path d="M126 70L142 86"/></g><path d="M150 46 C 190 10, 232 22, 244 52" fill="none" stroke="var(--court-line)" stroke-width="2" stroke-dasharray="6 6"/><circle cx="250" cy="62" r="10" fill="none" stroke="var(--court-line)" stroke-width="3"/><text x="118" y="106" fill="var(--mute)" font-size="12">tenir la pose</text></svg>',
+  "La pose se garde jusqu'au filet, sans rattraper le geste."]
+];
+var RULES=[
+ ["Raté à gauche ou à droite","L'alignement latéral lâche. Tes pieds sont sans doute trop parallèles au panier — reviens au tilt à {H} — ou ton coude s'écarte."],
+ ["Raté court","La poussée manque. Tu tires avec les bras. Fléchis plus avant la réception et fais monter l'énergie du bas vers le haut."],
+ ["Raté long","Le dosage part avec toi. Ton tir est trop tendu : monte le coude au-dessus des yeux pour ouvrir la parabole."],
+ ["Ficelles (swish)","La qualité du lâcher. Au-dessus de 25 % de ficelles, ton poignet et tes doigts libèrent la balle de la même façon à chaque tir."]
+];
+function missFigSvg(){ return '<svg viewBox="0 0 320 170"><ellipse cx="160" cy="92" rx="46" ry="16" fill="none" stroke="var(--accent)" stroke-width="3"/><g stroke="var(--miss)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M160 62v-28"/><path d="M154 40l6-8 6 8"/><path d="M160 122v28"/><path d="M154 144l6 8 6-8"/><path d="M106 92H72"/><path d="M80 86l-8 6 8 6"/><path d="M214 92h34"/><path d="M240 86l8 6-8 6"/></g><g fill="var(--mute)" font-size="12" text-anchor="middle"><text x="160" y="24">long</text><text x="160" y="166">court</text><text x="40" y="96">gauche</text><text x="284" y="96">droite</text></g></svg>'; }
+var MISSDIRS=[
+ ["court","Court",'<svg viewBox="0 0 40 30" stroke="currentColor" fill="none" stroke-width="2.4" stroke-linecap="round"><path d="M20 4v18"/><path d="M13 16l7 8 7-8"/></svg>'],
+ ["long","Long",'<svg viewBox="0 0 40 30" stroke="currentColor" fill="none" stroke-width="2.4" stroke-linecap="round"><path d="M20 26V8"/><path d="M13 14l7-8 7 8"/></svg>'],
+ ["gauche","À gauche",'<svg viewBox="0 0 40 30" stroke="currentColor" fill="none" stroke-width="2.4" stroke-linecap="round"><path d="M32 15H12"/><path d="M18 8l-8 7 8 7"/></svg>'],
+ ["droite","À droite",'<svg viewBox="0 0 40 30" stroke="currentColor" fill="none" stroke-width="2.4" stroke-linecap="round"><path d="M8 15h20"/><path d="M22 8l8 7-8 7"/></svg>']
+];
+
+/* ================= état ================= */
+var S={v:7,mode:"standard",theme:"dark",pal:"shotiq",custom:"#22D3DB",sun:false,wkGoal:4,
+  profile:{done:false,name:"",hand:"droitier",level:"inter",minutes:35,partner:"seul"},
+  tuto:{},
+  voice:{on:false,every:10,time:true},
+  plan:{active:false,start:null,done:0},remind:{on:false,time:"18:00",last:null},
+  cur:null,run:null,hist:[]};
+function newCur(src){ return {src:src,date:ymd(),startedAt:Date.now(),shots:[],ftA:0,ftM:0,forme:7,video:"",note:"",spot:null}; }
+function nextSrc(){ return (S.plan.active&&S.plan.done<PROG.length)?{type:"prog",i:S.plan.done}:{type:"free",i:0}; }
+function sessOf(src){ return src.type==="prog"? SESSIONS[PROG[Math.min(src.i,PROG.length-1)].s] : SESSIONS[src.i]||SESSIONS[0]; }
+function load(){
+  try{ var raw=store("shootingLab");
+    if(raw){ var o=JSON.parse(raw);
+      S.hist=o.hist||[]; S.mode=o.mode||"standard"; S.theme=o.theme||"auto";
+      S.pal=o.pal||"shotiq"; S.custom=o.custom||"#22D3DB"; S.sun=!!o.sun; S.wkGoal=o.wkGoal||4;
+      if(o.profile) S.profile=o.profile; if(o.voice) S.voice=o.voice; if(o.tuto) S.tuto=o.tuto;
+      if(o.plan)S.plan=o.plan; if(o.remind)S.remind=o.remind;
+      if(o.cur&&o.cur.date===ymd()){ S.cur=o.cur; S.run=o.run||null; }
+    }
+  }catch(e){}
+}
+function save(){ try{ store("shootingLab",JSON.stringify(S)); }catch(e){} }
+
+/* ================= profil & adaptation ================= */
+function tok(s){
+  if(s==null) return "";
+  var g=(S.profile.hand==="gaucher");
+  return String(s)
+    .replace(/\{H\}/g, g?"1h":"11h")
+    .replace(/\{SENS\}/g, g?"droite":"gauche")
+    .replace(/\{PIED\}/g, g?"gauche":"droit")
+    .replace(/\{PIEDF\}/g, g?"droit":"gauche")
+    .replace(/\{COUDE\}/g, g?"gauche":"droit");
+}
+var LEVELS={deb:{n:"Débutant",f:.8},inter:{n:"Intermédiaire",f:1},avance:{n:"Avancé",f:1.15}};
+function blockMin(ss,i){
+  if(i!==1) return ss.b[i].m;
+  var avail=S.profile.minutes||35;
+  return Math.max(8,Math.min(45,avail-ss.b[0].m-ss.b[2].m));
+}
+function totalMin(ss){ return blockMin(ss,0)+blockMin(ss,1)+blockMin(ss,2); }
+function goalFor(ss){
+  if(!ss.goal) return 0;
+  var f=blockMin(ss,1)/ss.b[1].m, lv=(LEVELS[S.profile.level]||LEVELS.inter).f;
+  var pf=(S.profile.partner==="accompagne")?1:.75;   // seul, on va chercher ses rebonds
+  return Math.max(15,Math.min(300,Math.round(ss.goal*f*lv*pf/5)*5));
+}
+
+/* ================= calculs ================= */
+function summarize(ss){
+  var a=ss.shots.length,m=0,sw=0,best=0,run=0,miss={court:0,long:0,gauche:0,droite:0};
+  for(var i=0;i<a;i++){ var s=ss.shots[i];
+    if(s.made){ m++; run++; if(run>best)best=run; if(s.swish)sw++; }
+    else{ run=0; if(s.miss&&miss.hasOwnProperty(s.miss)) miss[s.miss]++; } }
+  return {att:a,made:m,swish:sw,best:best,run:run,miss:miss,pct:a?m/a:null,pur:m?sw/m:null,
+    ftA:ss.ftA,ftM:ss.ftM,ftPct:ss.ftA?ss.ftM/ss.ftA:null};
+}
+function zoneStats(sh){ var z=[];for(var i=0;i<5;i++)z.push({att:0,made:0});
+  sh.forEach(function(s){ if(s.z==null)return; z[s.z].att++; if(s.made)z[s.z].made++; }); return z; }
+function pc(v,d){ return v==null?"—":(v*100).toFixed(d==null?1:d).replace(".",",")+" %"; }
+function trainedDays(){ var st={}; S.hist.forEach(function(h){ st[h.date]=1; }); return Object.keys(st).sort(); }
+function dayStreak(){ var d=trainedDays(); if(!d.length) return 0;
+  if(daysBetween(d[d.length-1],ymd())>1) return 0;
+  var n=1; for(var i=d.length-1;i>0;i--){ if(daysBetween(d[i-1],d[i])===1) n++; else break; } return n; }
+function bestStreak(){ var d=trainedDays(); if(!d.length) return 0;
+  var b=1,n=1; for(var i=1;i<d.length;i++){ if(daysBetween(d[i-1],d[i])===1){ n++; if(n>b)b=n; } else n=1; } return b; }
+function weekCount(){ var ws=ymd(weekStart()),st={};
+  S.hist.forEach(function(h){ if(h.date>=ws) st[h.date]=1; }); return Object.keys(st).length; }
+function toast(m){ var t=$("toast"); t.textContent=m; t.classList.add("on");
+  clearTimeout(t._h); t._h=setTimeout(function(){ t.classList.remove("on"); },1900); }
+function roll(el,to,suffix){
+  if(!el) return; suffix=suffix||"";
+  var from=parseFloat(el.getAttribute("data-v")||"0"); if(isNaN(from)) from=0;
+  if(from===to){ el.textContent=to+suffix; return; }
+  el.setAttribute("data-v",to);
+  var t0=performance.now();
+  (function step(t){ var k=Math.min(1,(t-t0)/380), v=Math.round(from+(to-from)*(1-Math.pow(1-k,3)));
+    el.textContent=v+suffix; if(k<1) requestAnimationFrame(step); })(t0);
+}
+function flash(made){
+  var f=$("flash"); f.className=""; void f.offsetWidth;
+  f.className=(made?"made":"missed")+" go";
+  try{ if(navigator.vibrate) navigator.vibrate(made?[14]:[10,45,10]); }catch(e){}
+}
+
+/* ================= terrain, heatmap, rejeu ================= */
+var CW=500,CH=430,PXM=CW/15,BX=250,BY=20+1.575*PXM;
+function courtBase(uid){
+  var lw=4.9*PXM,lh=5.8*PXM,lx=BX-lw/2,a3=6.75*PXM,co=.9*PXM;
+  return '<svg class="court" viewBox="0 0 '+CW+' '+CH+'" id="court_'+uid+'">'+
+   '<defs><clipPath id="clip_'+uid+'"><rect x="0" y="0" width="'+CW+'" height="'+CH+'"/></clipPath></defs>'+
+   '<g id="heat_'+uid+'" clip-path="url(#clip_'+uid+')"></g>'+
+   '<g id="zone_'+uid+'" clip-path="url(#clip_'+uid+')"></g>'+
+   '<g stroke="var(--court-line)" stroke-width="2" fill="none"><line x1="8" y1="20" x2="'+(CW-8)+'" y2="20"/>'+
+   '<rect x="'+lx+'" y="20" width="'+lw+'" height="'+lh+'"/><circle cx="'+BX+'" cy="'+(20+lh)+'" r="'+(1.8*PXM)+'"/>'+
+   '<line x1="'+(BX-.9*PXM)+'" y1="'+(20+.9*PXM)+'" x2="'+(BX+.9*PXM)+'" y2="'+(20+.9*PXM)+'" stroke-width="3"/>'+
+   '<path d="M '+co+' 20 L '+co+' '+(20+2.99*PXM)+' A '+a3+' '+a3+' 0 0 0 '+(CW-co)+' '+(20+2.99*PXM)+' L '+(CW-co)+' 20"/></g>'+
+   '<circle cx="'+BX+'" cy="'+BY+'" r="'+(.225*PXM)+'" fill="none" stroke="var(--accent)" stroke-width="2.5"/>'+
+   '<g id="shot_'+uid+'"></g><g id="spot_'+uid+'"></g></svg>';
+}
+var ZBOUNDS=[[-90,-54],[-54,-18],[-18,18],[18,54],[54,90]];
+function polar(a,R){ var r=a*Math.PI/180; return [BX+R*Math.sin(r), BY+R*Math.cos(r)]; }
+function wedgePath(a1,a2){
+  var R=760,pts=[[BX,BY]];
+  for(var a=a1;a<=a2;a+=4) pts.push(polar(a,R));
+  pts.push(polar(a2,R));
+  return "M "+pts.map(function(p){ return p[0].toFixed(1)+" "+p[1].toFixed(1); }).join(" L ")+" Z";
+}
+function heatColor(p){
+  var P=paletteOf();
+  if(p==null) return "transparent";
+  return p<.25 ? P.miss : p<.40 ? mix(P.miss,P.gold,(p-.25)/.15) : mix(P.gold,P.made,Math.min(1,(p-.40)/.25));
+}
+function drawHeat(uid,shots){
+  var l=$("heat_"+uid); if(!l) return;
+  var pts=(shots||[]).filter(function(s){ return s.x!=null; });
+  if(!pts.length){ l.innerHTML=""; return; }
+  var out='<defs><filter id="blur_'+uid+'" x="-30%" y="-30%" width="160%" height="160%">'+
+    '<feGaussianBlur stdDeviation="17"/></filter></defs><g filter="url(#blur_'+uid+')">';
+  pts.forEach(function(s){
+    out+='<circle cx="'+s.x+'" cy="'+s.y+'" r="30" fill="'+(s.made?"var(--accent)":"var(--miss)")+'" opacity=".28"/>';
+  });
+  l.innerHTML=out+'</g>';
+}
+function drawZones(uid,zs){
+  var l=$("zone_"+uid); if(!l) return;
+  if(!zs){ l.innerHTML=""; return; }
+  var out="";
+  zs.forEach(function(v,i){
+    var p=v.att?v.made/v.att:null;
+    out+='<path d="'+wedgePath(ZBOUNDS[i][0],ZBOUNDS[i][1])+'" fill="'+heatColor(p)+'" opacity="'+(v.att?.30:.05)+'"/>';
+    out+='<path d="'+wedgePath(ZBOUNDS[i][0],ZBOUNDS[i][1])+'" fill="none" stroke="var(--court-line)" stroke-width="1" opacity=".35"/>';
+    if(v.att){ var c=polar((ZBOUNDS[i][0]+ZBOUNDS[i][1])/2, 4.6*PXM);
+      out+='<text x="'+c[0].toFixed(0)+'" y="'+c[1].toFixed(0)+'" text-anchor="middle" font-size="19" font-weight="800" fill="var(--ink)">'+Math.round(p*100)+'%</text>'+
+           '<text x="'+c[0].toFixed(0)+'" y="'+(c[1]+17).toFixed(0)+'" text-anchor="middle" font-size="12" fill="var(--mute)">'+v.made+'/'+v.att+'</text>'; }
+  });
+  l.innerHTML=out;
+}
+function drawShots(uid,shots,anim,upTo){
+  var sl=$("shot_"+uid); if(!sl) return;
+  var out="",n=(upTo==null?shots.length:upTo),last=n-1;
+  shots.slice(0,n).forEach(function(s,i){
+    if(s.x==null) return;
+    var an=(anim&&i===last)?' style="animation:pop .3s ease both;transform-origin:'+s.x+'px '+s.y+'px"':'';
+    if(s.made) out+='<circle cx="'+s.x+'" cy="'+s.y+'" r="7" fill="'+(s.swish?"var(--gold)":"var(--made)")+'" fill-opacity=".9"'+an+'/>';
+    else out+='<g stroke="var(--miss)" stroke-width="3" stroke-linecap="round"'+an+'><line x1="'+(s.x-6)+'" y1="'+(s.y-6)+'" x2="'+(s.x+6)+'" y2="'+(s.y+6)+'"/><line x1="'+(s.x+6)+'" y1="'+(s.y-6)+'" x2="'+(s.x-6)+'" y2="'+(s.y+6)+'"/></g>';
+  });
+  sl.innerHTML=out;
+}
+function drawSpot(uid){
+  var sp=$("spot_"+uid); if(!sp||!S.cur) return; var p=S.cur.spot;
+  sp.innerHTML=p?'<circle cx="'+p.x+'" cy="'+p.y+'" r="15" fill="none" stroke="var(--accent)" stroke-width="3"/><circle cx="'+p.x+'" cy="'+p.y+'" r="3.5" fill="var(--accent)"/>':"";
+}
+function zoneOf(x,y){ var a=Math.atan2(x-BX,Math.max(y-BY,.001))*180/Math.PI;
+  if(a<-54)return 0; if(a<-18)return 1; if(a<=18)return 2; if(a<=54)return 3; return 4; }
+function distM(x,y){ return Math.sqrt(Math.pow(x-BX,2)+Math.pow(y-BY,2))/PXM; }
+
+/* ================= accueil ================= */
+function setBanner(){
+  var b=$("banner"),t=$("bannerTxt");
+  if(!b||!t) return;
+  if(S.run&&S.cur){ var ss=sessOf(S.run.src);
+    t.textContent="Séance en cours · bloc "+(S.run.idx+1)+" sur 3";
+    b.classList.add("live");
+  } else {
+    t.textContent=frDate(ymd())+" · "+weekCount()+" séance"+(weekCount()>1?"s":"")+" cette semaine";
+    b.classList.remove("live");
+  }
+}
+function renderHome(){
+  var pn=(S.profile&&S.profile.name)?S.profile.name:"";
+  $("homeHello").textContent=pn?("Salut "+pn+", prêt à shooter ?"):"Prêt à shooter ?";
+  roll($("flameNum"),dayStreak());
+  $("flame").classList.toggle("live",dayStreak()>0);
+  roll($("wkDone"),weekCount()); $("wkGoal").textContent=S.wkGoal;
+  var ws=weekStart(),days=["L","M","M","J","V","S","D"],today=ymd(),st={};
+  S.hist.forEach(function(h){ st[h.date]=1; });
+  var h="";
+  for(var i=0;i<7;i++){ var d=new Date(ws); d.setDate(ws.getDate()+i); var k=ymd(d);
+    h+='<div><div class="d">'+days[i]+'</div><div class="n'+(st[k]?" done":"")+(k===today?" today":"")+'">'+d.getDate()+'</div></div>'; }
+  $("weekStrip").innerHTML=h;
+  setBanner();
+
+  if(S.run&&S.cur){
+    var rs=sessOf(S.run.src);
+    var rsum=summarize(S.cur);
+    $("resumeBox").innerHTML='<div class="card glow"><h3 style="margin-bottom:4px">Séance en cours</h3>'+
+      '<p class="lede">'+esc(rs.n)+' · bloc '+(S.run.idx+1)+' sur 3'+
+      (rsum.att||S.cur.ftA?(' · '+rsum.made+'/'+rsum.att+' tirs, '+S.cur.ftM+'/'+S.cur.ftA+' LF'):' · rien de saisi')+'</p>'+
+      '<button class="btn primary wide" id="resumeBtn">Reprendre</button>'+
+      '<button class="btn wide quiet" id="cancelBtn" style="margin-top:10px;color:var(--danger);border-color:var(--danger)">Annuler la séance</button></div>';
+    $("resumeBtn").onclick=function(){ openRunner(); };
+    $("cancelBtn").onclick=function(){
+      if(!hasData()) cancelSession();
+      else ask("Les tirs saisis seront perdus et rien ne rejoindra ton historique.",cancelSession,
+               {title:"Annuler la séance ?",yes:"Annuler la séance",no:"Garder",danger:true}); };
+  } else $("resumeBox").innerHTML="";
+
+  var p=S.plan,tot=PROG.length;
+  if(!p.active){
+    $("progCard").innerHTML='<div class="deco">'+deco()+'</div><div class="kick">1 mois · 20 séances</div>'+
+      '<div class="ttl">Reconstruire ton tir du milieu de terrain</div><div class="day">J1</div>'+
+      '<div class="barwrap"><span>0/'+tot+'</span><div class="bar"><div style="width:0"></div></div></div>'+
+      '<button class="cta" id="ctaProg">Démarrer le programme <span class="arrow">›</span></button>';
+    $("ctaProg").onclick=function(){ S.plan={active:true,start:ymd(),done:0}; save(); renderHome(); renderPlan(); toast("Programme démarré"); };
+  } else {
+    var done=p.done,fin=done>=tot,idx=Math.min(done,tot-1),ss=SESSIONS[PROG[idx].s];
+    $("progCard").innerHTML='<div class="deco">'+deco()+'</div>'+
+      '<div class="kick">Semaine '+PROG[idx].w+' · '+esc(PHASES[PROG[idx].w-1])+'</div>'+
+      '<div class="ttl">'+esc(ss.n)+'</div><div class="day">'+(fin?"FINI":("SÉANCE "+(done+1)))+'</div>'+
+      '<div class="barwrap"><span>'+done+'/'+tot+'</span><div class="bar"><div style="width:'+(done/tot*100)+'%"></div></div></div>'+
+      '<button class="cta" id="ctaProg">'+(fin?"Recommencer le programme":"Lancer la séance "+(done+1))+' <span class="arrow">›</span></button>';
+    $("ctaProg").onclick=function(){
+      if(fin){ ask("Le compteur repart à la première séance, ton historique est conservé.",
+        function(){ S.plan.done=0; S.plan.start=ymd(); save(); renderHome(); renderPlan(); },
+        {title:"Recommencer le programme ?",yes:"Recommencer"}); return; }
+      preview({type:"prog",i:S.plan.done}); };
+  }
+  renderChips(); renderSessList();
+}
+var curCat="Tout";
+function renderChips(){
+  $("chips").innerHTML=CATS.map(function(c){ return '<button data-cat="'+c+'" aria-pressed="'+(c===curCat)+'">'+c+'</button>'; }).join("");
+  each("#chips button",function(b){ b.onclick=function(){ curCat=b.dataset.cat; renderChips(); renderSessList(); }; });
+}
+function sparkFor(i){
+  var vals=S.hist.filter(function(h){ return h.sess===i&&h.pct!=null; }).slice(-8).map(function(h){ return h.pct; });
+  if(vals.length<2) return "";
+  var W=96,H=22,mx=Math.max.apply(null,vals),mn=Math.min.apply(null,vals),r=(mx-mn)||.01;
+  var d=vals.map(function(v,k){ return (k?"L":"M")+" "+(k*(W/(vals.length-1))).toFixed(1)+" "+(H-2-((v-mn)/r)*(H-6)).toFixed(1); }).join(" ");
+  return '<svg class="spark" viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'"><path d="'+d+'" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+}
+function sessCard(i,s){
+  var last=null;
+  for(var k=S.hist.length-1;k>=0;k--){ if(S.hist[k].sess===i){ last=S.hist[k]; break; } }
+  return '<div class="sess" data-s="'+i+'"><div class="thumb">'+thumb(i)+'</div>'+
+    '<div style="min-width:0"><div class="t">'+esc(s.n)+'</div>'+
+    '<div class="m">'+totalMin(s)+' min · 3 blocs · '+esc(s.dist)+'</div>'+
+    '<div class="lvl">'+[0,1,2].map(function(k2){ return bolt(k2<Math.ceil(s.lvl*3/4)); }).join("")+
+    '<span class="tagx" style="margin-left:6px">'+esc(s.cat)+'</span></div>'+
+    (last?'<div class="m">Dernière fois : '+frDate(last.date)+' · '+pc(last.pct,0)+'</div>':'')+sparkFor(i)+
+    '</div><div class="go">›</div></div>';
+}
+function renderSessList(){
+  var out="";
+  SESSIONS.forEach(function(s,i){ if(curCat==="Tout"||s.cat===curCat) out+=sessCard(i,s); });
+  $("sessList").innerHTML=out||'<p class="empty">Aucune séance dans cette catégorie.</p>';
+  each("#sessList [data-s]",function(el){ el.onclick=function(){ preview({type:"free",i:+el.dataset.s}); }; });
+}
+
+/* ================= aperçu avant lancement ================= */
+function preview(src){
+  var ss=sessOf(src),tot=totalMin(ss);
+  var isProg=src.type==="prog";
+  $("previewBody").innerHTML='<div class="row"><h2 style="flex:1">'+esc(ss.n)+'</h2>'+
+    '<button class="btn small quiet" data-close="previewSheet">Fermer</button></div>'+
+    '<p class="lede">'+(isProg?("Séance "+(src.i+1)+" du programme · "):"Séance libre · ")+esc(ss.dist)+' · '+tot+' min</p>'+
+    ss.b.map(function(b,i){ return '<div class="reportrow"><div class="bn">'+(i+1)+'</div>'+
+      '<div class="rt">'+esc(tok(b.t))+'<div class="note">'+esc(tok(b.d[0]))+'</div></div><div class="rv">'+blockMin(ss,i)+"'"+'</div></div>'; }).join("")+
+    (ss.goal?'<p class="note" style="margin-top:12px">Objectif du corps de séance : '+goalFor(ss)+' tirs marqués, calibré sur ton profil.</p>':'')+
+    '<button class="btn primary wide" id="startNow" style="margin-top:16px">Commencer</button>';
+  $("previewSheet").classList.add("on");
+  $("startNow").onclick=function(){ $("previewSheet").classList.remove("on"); startSession(src); };
+}
+
+/* ================= confirmations internes =================
+   Les boîtes natives (confirm, prompt) ne s'affichent pas dans une WebView
+   sans WebChromeClient : elles renvoient « non » sans rien montrer, ce qui
+   rendait l'annulation de séance inopérante dans l'APK. Tout passe désormais
+   par cette feuille, identique partout. */
+function openSheet(id,on){ $(id).classList.toggle("on",!!on); }
+function ask(msg,onYes,opts){
+  opts=opts||{};
+  $("askBody").innerHTML='<h2>'+esc(opts.title||"Confirmer")+'</h2>'+
+    '<p class="lede" style="margin-top:6px">'+esc(msg)+'</p>'+
+    '<button class="btn wide '+(opts.danger?"quiet":"primary")+'" id="askYes"'+
+      (opts.danger?' style="color:var(--danger);border-color:var(--danger)"':'')+'>'+esc(opts.yes||"Confirmer")+'</button>'+
+    '<button class="btn wide '+(opts.danger?"primary":"quiet")+'" id="askNo" style="margin-top:10px">'+esc(opts.no||"Annuler")+'</button>';
+  openSheet("askSheet",true);
+  $("askYes").onclick=function(){ openSheet("askSheet",false); if(onYes) onYes(); };
+  $("askNo").onclick=function(){ openSheet("askSheet",false); if(opts.onNo) opts.onNo(); };
+}
+function askNumber(msg,value,min,max,onOk){
+  $("askBody").innerHTML='<h2>'+esc(msg)+'</h2>'+
+    '<input type="number" id="askNum" value="'+value+'" min="'+min+'" max="'+max+'" style="margin-top:12px">'+
+    '<button class="btn wide primary" id="askYes" style="margin-top:14px">Enregistrer</button>'+
+    '<button class="btn wide quiet" id="askNo" style="margin-top:10px">Annuler</button>';
+  openSheet("askSheet",true);
+  $("askYes").onclick=function(){ var v=parseInt($("askNum").value,10); openSheet("askSheet",false);
+    if(!isNaN(v)) onOk(Math.max(min,Math.min(max,v))); };
+  $("askNo").onclick=function(){ openSheet("askSheet",false); };
+}
+
+/* ================= tutoriels =================
+   Proposés une seule fois, à la première ouverture de chaque fonction.
+   L'utilisateur choisit entre suivre le guide ou passer ; dans les deux cas
+   la fonction reste accessible et le tutoriel ne revient plus. */
+var TUTOS={
+ runner:{t:"Le déroulé d'une séance",ic:"1",s:[
+   "Une séance se joue en <b>trois blocs</b> : échauffement, corps de séance, lancers francs. Le bandeau en haut indique où tu en es.",
+   "Appuie sur <b>Démarrer le bloc</b> : le chrono part en anneau autour du temps visé. Un signal sonore prévient quand ce temps est atteint, sans t'arrêter pour autant.",
+   "Pendant le bloc de tir, les deux grands boutons enregistrent <b>marqué</b> et <b>raté</b>. Le pourcentage et la série se mettent à jour en direct.",
+   "Quand le bloc est fini, <b>Valider le bloc</b> passe au suivant. Après le troisième, le rapport de séance s'ouvre."]},
+ handsfree:{t:"Le mode mains libres",ic:"2",s:[
+   "L'écran se coupe en deux : toute la moitié <b>gauche</b> pour un tir marqué, toute la moitié <b>droite</b> pour un raté.",
+   "Tu peux taper sans regarder, pendant que tu récupères tes rebonds. Une vibration différente confirme chaque appui.",
+   "La pastille du bas garde ton compte et ton pourcentage. Le bouton <b>micro</b> allume les annonces vocales.",
+   "Pour revenir à la saisie normale : la <b>croix en haut à droite</b>, ou le bouton <b>Fin</b> de la pastille."]},
+ court:{t:"La carte des tirs",ic:"3",s:[
+   "En mode Avancé, touche le terrain pour poser ton <b>spot</b> : les tirs suivants garderont cette position.",
+   "Chaque tir apparaît sur le terrain, cyan s'il est marqué, indigo s'il est manqué.",
+   "Le bouton <b>Chaleur</b> superpose ton pourcentage par zone. Il faut une vingtaine de tirs dans une zone pour que le chiffre veuille dire quelque chose."]},
+ report:{t:"Le rapport de séance",ic:"4",s:[
+   "Tu retrouves la <b>durée réelle</b> de chacun des trois blocs face au temps visé, puis tes chiffres.",
+   "Le <b>diagnostic</b> lit la direction de tes ratés : côtés, c'est l'alignement ; profondeur, c'est la poussée ou le dosage.",
+   "Ajoute ta <b>forme du jour</b> et une note avant d'enregistrer : ces éléments nourrissent ton historique."]},
+ plan:{t:"Le programme d'un mois",ic:"5",s:[
+   "Vingt séances en quatre blocs de progression. Il avance au rythme de <b>tes séances clôturées</b>, jamais du calendrier.",
+   "Si tu sautes deux jours, tu reprends exactement là où tu t'étais arrêté.",
+   "Tu peux lancer n'importe quelle séance de la liste : seule la suivante fait avancer le compteur."]},
+ report_tab:{t:"Tes progrès",ic:"6",s:[
+   "La courbe suit ton adresse et tes lancers francs séance après séance.",
+   "La <b>carte de chaleur</b> cumule toutes tes positions de tir depuis le début.",
+   "Touche une ligne de l'historique pour rouvrir le rapport complet de cette séance, avec le rejeu de ses tirs."]}
+};
+function tutoSeen(id){ return !!(S.tuto&&S.tuto[id]); }
+function tutoMark(id){ if(!S.tuto) S.tuto={}; S.tuto[id]=1; save(); }
+function tuto(id,force){
+  var T=TUTOS[id]; if(!T) return;
+  if(!force&&tutoSeen(id)) return;
+  tutoMark(id);
+  var el=$("tutoBody");
+  el.innerHTML='<div class="tutohead"><div class="tic">'+T.ic+'</div>'+
+    '<div><h2 style="font-size:18px">'+esc(T.t)+'</h2>'+
+    '<div class="note">'+T.s.length+' étapes, moins d\'une minute</div></div></div>'+
+    '<button class="btn primary wide" id="tutoGo" style="margin-top:16px">Voir le guide</button>'+
+    '<button class="btn wide quiet" id="tutoSkip" style="margin-top:10px">Passer</button>'+
+    '<p class="note" style="margin:10px 0 0">Tu pourras le revoir depuis les Réglages.</p>';
+  openSheet("tutoSheet",true);
+  $("tutoGo").onclick=function(){ tutoRun(id,0); };
+  $("tutoSkip").onclick=function(){ openSheet("tutoSheet",false); };
+}
+function tutoRun(id,i){
+  var T=TUTOS[id],last=(i>=T.s.length-1),el=$("tutoBody");
+  el.innerHTML='<div class="tutohead"><div class="tic">'+T.ic+'</div><h2 style="font-size:18px">'+esc(T.t)+'</h2></div>'+
+    '<div class="tutodots">'+T.s.map(function(_,k){ return '<i class="'+(k<=i?"on":"")+'"></i>'; }).join("")+'</div>'+
+    '<p class="tutostep">'+T.s[i]+'</p>'+
+    '<button class="btn primary wide" id="tutoNext" style="margin-top:20px">'+(last?"J'ai compris":"Suivant")+'</button>'+
+    (i>0?'<button class="btn wide quiet" id="tutoPrev" style="margin-top:10px">Précédent</button>':
+         '<button class="btn wide quiet" id="tutoStop" style="margin-top:10px">Fermer</button>');
+  openSheet("tutoSheet",true);
+  $("tutoNext").onclick=function(){ if(last) openSheet("tutoSheet",false); else tutoRun(id,i+1); };
+  if($("tutoPrev")) $("tutoPrev").onclick=function(){ tutoRun(id,i-1); };
+  if($("tutoStop")) $("tutoStop").onclick=function(){ openSheet("tutoSheet",false); };
+}
+
+/* ================= lecteur ================= */
+function startSession(src){
+  if(S.run&&S.cur){
+    ask("La séance en cours sera abandonnée et ses tirs perdus.",function(){ beginSession(src); },
+        {title:"Remplacer la séance ?",yes:"Remplacer",no:"Garder l'actuelle",danger:true});
+    return;
+  }
+  beginSession(src);
+}
+function beginSession(src){
+  S.cur=newCur(src);
+  S.run={src:src,idx:0,secs:[0,0,0],running:false,phase:"block"};
+  save(); openRunner(); toast("Séance lancée");
+  tuto("runner");
+}
+function openRunner(){ $("runner").classList.add("on"); renderRun(); }
+function hasData(){ return !!(S.cur&&(S.cur.shots.length||S.cur.ftA)); }
+function cancelSession(){
+  S.cur=null; S.run=null; hfOn=false; heatOn=false;
+  ["hf","quitSheet","askSheet","missSheet","detailSheet","pickSheet","previewSheet"].forEach(function(id){
+    var e=$(id); if(e) e.classList.remove("on");
+  });
+  if(metroT){ clearInterval(metroT); metroT=null; }
+  wakeOff();
+  try{ speechSynthesis.cancel(); }catch(e){}
+  save(); closeRunner(); renderAll(); go("home"); toast("Séance annulée");
+}
+function pauseAndQuit(){
+  if(S.run) S.run.running=false;
+  hfOn=false; $("hf").classList.remove("on"); $("quitSheet").classList.remove("on");
+  save(); closeRunner(); wakeOff();
+  toast("Séance mise en attente");
+}
+function askQuit(){
+  if(!S.run) { closeRunner(); return; }
+  if(!hasData()){ cancelSession(); return; }
+  var s=summarize(S.cur),ss=sessOf(S.run.src),el=$("quitBody");
+  el.innerHTML='<div class="row"><h2 style="flex:1">Quitter la séance ?</h2></div>'+
+   '<p class="lede">'+esc(ss.n)+' · bloc '+(S.run.idx+1)+' sur 3</p>'+
+   '<div class="kpis" style="margin-bottom:16px">'+
+   '<div class="kpi"><b>'+s.made+'/'+s.att+'</b><i>tirs enregistrés</i></div>'+
+   '<div class="kpi"><b>'+S.cur.ftM+'/'+S.cur.ftA+'</b><i>lancers francs</i></div></div>'+
+   '<button class="btn primary wide" id="qResume">Reprendre la séance</button>'+
+   '<button class="btn wide" id="qPause" style="margin-top:10px">Mettre en attente et sortir</button>'+
+   '<p class="note" style="margin:8px 0 0">Elle restera sur l\'accueil jusqu\'à ce soir, prête à reprendre.</p>'+
+   '<button class="btn wide quiet" id="qCancel" style="margin-top:16px;color:var(--danger);border-color:var(--danger)">Annuler la séance</button>'+
+   '<p class="note" style="margin:8px 0 0">Les '+(s.att+S.cur.ftA)+' tirs saisis seront effacés et rien ne rejoindra ton historique.</p>';
+  $("quitSheet").classList.add("on");
+  $("qResume").onclick=function(){ $("quitSheet").classList.remove("on"); };
+  $("qPause").onclick=pauseAndQuit;
+  $("qCancel").onclick=function(){
+    openSheet("quitSheet",false);
+    ask("Les "+(s.att+S.cur.ftA)+" tirs saisis seront effacés et rien ne rejoindra ton historique.",
+        cancelSession,{title:"Annuler la séance ?",yes:"Annuler la séance",no:"Revenir",danger:true}); };
+}
+function closeRunner(){ $("runner").classList.remove("on"); $("runner").classList.remove("running"); renderHome(); }
+function curBlock(){ return sessOf(S.run.src).b[S.run.idx]; }
+function ripple(b){ if(b.classList.contains("swish")) return;
+  var r=document.createElement("span"); r.className="rip"; b.appendChild(r); setTimeout(function(){ r.remove(); },520); }
+
+function renderRun(){
+  if(!S.run) return;
+  var ss=sessOf(S.run.src),b=curBlock(),r=S.run;
+  $("runner").classList.toggle("running",!!r.running);
+  $("runner").classList.toggle("rep",r.phase==="report");
+  $("runTitle").textContent=ss.n;
+  var bm=blockMin(ss,r.idx);
+  $("runSub").textContent=r.phase==="report"?"Rapport de séance":("Bloc "+(r.idx+1)+" sur 3 · "+tok(b.t)+" · "+bm+" min");
+  $("runSteps").innerHTML=[0,1,2].map(function(i){
+    return '<i class="'+(r.phase==="report"||i<r.idx?"done":(i===r.idx?"on":""))+'"></i>'; }).join("");
+  if(r.phase==="report"){ renderReportScreen(); tuto("report"); return; }
+
+  var target=bm*60,sec=r.secs[r.idx],frac=Math.min(1,sec/target),C=2*Math.PI*94;
+  var html='<div class="clock'+(sec>=target?" over":"")+(r.running?" pulse":"")+'" id="clock">'+
+    '<svg viewBox="0 0 218 218"><defs><linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">'+
+    '<stop offset="0%" stop-color="var(--accent)"/><stop offset="100%" stop-color="var(--accent2)"/></linearGradient></defs>'+
+    '<circle class="cbg" cx="109" cy="109" r="94" fill="none" stroke-width="13"/>'+
+    '<circle class="cfg" cx="109" cy="109" r="94" fill="none" stroke-width="13" stroke-linecap="round" '+
+    'transform="rotate(-90 109 109)" stroke-dasharray="'+C+'" stroke-dashoffset="'+(C*(1-frac))+'"/></svg>'+
+    '<div class="ctxt"><b id="runClock">'+mmss(sec)+'</b><i>sur '+bm+':00 visées</i></div></div>';
+
+  var s=summarize(S.cur);
+  if(b.shoot){
+    html+='<div class="livebar"><div><b class="num" id="lvPct">'+(s.pct==null?"—":Math.round(s.pct*100)+"%")+'</b><i>adresse</i></div>'+
+      '<div><b class="num" id="lvMade">'+s.made+'</b><i>marqués'+(goalFor(ss)?" / "+goalFor(ss):"")+'</i></div>'+
+      '<div id="runBox" class="'+(s.run>=5?"hot":"")+'"><b class="num" id="lvRun">'+s.run+'</b><i>série</i></div></div>';
+  }
+  if(b.ft){
+    html+='<div class="livebar"><div><b class="num" id="lvFt">'+S.cur.ftM+'/'+S.cur.ftA+'</b><i>lancers francs</i></div>'+
+      '<div><b class="num" id="lvFtPct">'+pc(S.cur.ftA?S.cur.ftM/S.cur.ftA:null,0)+'</b><i>réussite</i></div></div>';
+  }
+  html+='<div class="card" style="margin-bottom:14px"><h3 style="margin-bottom:9px">'+esc(tok(b.t))+'</h3>'+
+    '<ul class="blocklist">'+b.d.map(function(x){ return "<li>"+esc(tok(x))+"</li>"; }).join("")+'</ul></div>';
+  if(b.shoot&&S.mode==="avance"){
+    html+='<div class="card"><h3 style="margin-bottom:9px">Carte des tirs</h3>'+
+      '<div id="courtWrap"></div>'+
+      '<div class="legend"><span><i class="dot" style="background:var(--made)"></i>marqué</span>'+
+      '<span><i class="dot" style="background:var(--miss)"></i>raté</span>'+
+      '<span><i class="dot" style="background:var(--gold)"></i>ficelle</span><span class="spacer"></span>'+
+      '<button class="btn small quiet" id="heatBtn">Chaleur</button>'+
+      '<button class="btn small quiet" id="clearSpot">Spot</button></div>'+
+      '<p class="note" id="spotNote" style="margin-top:8px"></p></div>';
+  }
+  $("runBody").innerHTML=html;
+
+  var foot="";
+  if(b.shoot) foot+='<div class="padgrid" style="margin-bottom:10px"><button class="big made" id="bMade">Marqué</button>'+
+    '<button class="big missed" id="bMiss">Raté</button><button class="big swish adv" id="bSwish">Ficelle (swish)</button></div>';
+  else if(b.ft) foot+='<div class="padgrid" style="margin-bottom:10px"><button class="big made" id="ftMade">Rentré</button>'+
+    '<button class="big missed" id="ftMiss">Manqué</button></div>';
+  if(b.shoot||b.ft) foot+='<button class="btn quiet wide small" id="hfBtn" style="margin-bottom:10px">Mode mains libres</button>';
+  foot+='<div class="row"><button class="btn '+(r.running?"":"primary")+'" id="runToggle" style="flex:1">'+
+    (r.running?"Pause":(r.secs[r.idx]?"Reprendre":"Démarrer le bloc "+(r.idx+1)))+'</button>'+
+    ((r.secs[r.idx]||r.running)?'<button class="btn primary" id="runNext" style="flex:1">'+(r.idx<2?"Valider le bloc":"Terminer")+'</button>':'')+'</div>'+
+    '<div class="row" style="margin-top:8px">'+
+    ((b.shoot||b.ft)?'<button class="btn small quiet" id="bUndo">Annuler le dernier</button>':'')+
+    '<span class="spacer"></span><button class="btn small quiet" id="skipBlock">Passer ce bloc</button></div>';
+  foot+='<div class="kbd" style="margin-top:8px"><kbd>Espace</kbd> démarrer · <kbd>M</kbd> marqué · <kbd>R</kbd> raté'+
+    (S.mode==="avance"&&b.shoot?' · <kbd>S</kbd> ficelle':'')+' · <kbd>Z</kbd> annuler · <kbd>H</kbd> mains libres · <kbd>Entrée</kbd> valider</div>';
+  $("runFoot").innerHTML=foot;
+  wireRun();
+}
+var heatOn=false;
+function wireRun(){
+  var b=curBlock();
+  if($("runToggle")) $("runToggle").onclick=function(){ S.run.running=!S.run.running;
+    if(S.run.running) wakeOn(); else wakeOff(); save(); renderRun(); beep(660,.08,.14); };
+  if($("runNext")) $("runNext").onclick=nextBlock;
+  if($("hfBtn")) $("hfBtn").onclick=function(){ if(!S.run.running){ S.run.running=true; save(); } hfOpen(); };
+  if($("skipBlock")) $("skipBlock").onclick=function(){ S.run.running=false; nextBlock(); };
+  if($("bMade")) $("bMade").onclick=function(){ ripple(this); addShot(true,false,null); };
+  if($("bSwish")) $("bSwish").onclick=function(){ addShot(true,true,null); };
+  if($("bMiss")) $("bMiss").onclick=function(){ ripple(this);
+    if(S.mode==="standard") addShot(false,false,null); else $("missSheet").classList.add("on"); };
+  if($("ftMade")) $("ftMade").onclick=function(){ ripple(this); S.cur.ftA++; S.cur.ftM++; save(); flash(true); liveUpdate(true); };
+  if($("ftMiss")) $("ftMiss").onclick=function(){ ripple(this); S.cur.ftA++; save(); flash(false); liveUpdate(true); };
+  if($("bUndo")) $("bUndo").onclick=function(){
+    if(b.ft){ if(S.cur.ftA>0){ S.cur.ftA--; if(S.cur.ftM>S.cur.ftA) S.cur.ftM=S.cur.ftA; save(); liveUpdate(); } return; }
+    if(!S.cur.shots.length){ toast("Rien à annuler"); return; }
+    S.cur.shots.pop(); save(); liveUpdate(); drawShots("run",S.cur.shots); if(heatOn) drawZones("run",zoneStats(S.cur.shots)); };
+  if($("courtWrap")){
+    tuto("court");
+    $("courtWrap").innerHTML=courtBase("run");
+    $("court_run").addEventListener("click",function(ev){
+      var rc=this.getBoundingClientRect();
+      var x=(ev.clientX-rc.left)/rc.width*CW,y=(ev.clientY-rc.top)/rc.height*CH;
+      S.cur.spot={x:Math.round(x),y:Math.round(y),z:zoneOf(x,y),d:distM(x,y)};
+      save(); drawSpot("run"); renderSpotNote(); });
+    drawShots("run",S.cur.shots); drawSpot("run"); renderSpotNote();
+    if(heatOn) drawZones("run",zoneStats(S.cur.shots));
+    $("heatBtn").onclick=function(){ heatOn=!heatOn; this.classList.toggle("primary",heatOn);
+      drawZones("run",heatOn?zoneStats(S.cur.shots):null); };
+    $("clearSpot").onclick=function(){ S.cur.spot=null; save(); drawSpot("run"); renderSpotNote(); };
+  }
+}
+function renderSpotNote(){ var el=$("spotNote"); if(!el||!S.cur) return; var p=S.cur.spot;
+  el.textContent=p?(ZONES[p.z]+" · "+p.d.toFixed(1).replace(".",",")+" m"):"Touche le terrain pour poser ton spot (facultatif)"; }
+function bumpEl(el){ if(!el) return; el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump"); }
+function liveUpdate(anim){
+  var s=summarize(S.cur);
+  if($("lvPct")) $("lvPct").textContent=s.pct==null?"—":Math.round(s.pct*100)+"%";
+  if($("lvMade")){ roll($("lvMade"),s.made); if(anim) bumpEl($("lvMade")); }
+  if($("lvRun")){ $("lvRun").textContent=s.run; if($("runBox")) $("runBox").classList.toggle("hot",s.run>=5); }
+  if($("lvFt")){ $("lvFt").textContent=S.cur.ftM+"/"+S.cur.ftA; if(anim) bumpEl($("lvFt")); }
+  if($("lvFtPct")) $("lvFtPct").textContent=pc(S.cur.ftA?S.cur.ftM/S.cur.ftA:null,0);
+}
+function addShot(made,swish,miss){
+  var p=(S.mode==="avance")?S.cur.spot:null;
+  S.cur.shots.push({made:made,swish:!!swish,miss:miss||null,t:Date.now(),
+    x:p?p.x:null,y:p?p.y:null,z:p?p.z:null,d:p?+p.d.toFixed(2):null});
+  save(); flash(made); liveUpdate(true); drawShots("run",S.cur.shots,true);
+  if(heatOn) drawZones("run",zoneStats(S.cur.shots));
+  if(S.voice.on){
+    var sm=summarize(S.cur);
+    if(sm.run>0&&sm.run%5===0) speak("série de "+sm.run);
+    else if(S.voice.every&&sm.att%S.voice.every===0) sayScore();
+  }
+  if(hfOn) hfUpdate();
+}
+function nextBlock(){
+  S.run.running=false; wakeOff();
+  if(hfOn) hfClose();
+  if(S.run.idx<2){ S.run.idx++; save(); renderRun(); $("runBody").scrollTop=0; beep(880,.18,.2);
+    var ss2=sessOf(S.run.src),nb=ss2.b[S.run.idx];
+    speak("Bloc "+(S.run.idx+1)+", "+tok(nb.t)+", "+blockMin(ss2,S.run.idx)+" minutes"); }
+  else { S.run.phase="report"; save(); renderRun(); beep(880,.25,.25); setTimeout(function(){ beep(1180,.3,.25); },280);
+    var sf=summarize(S.cur);
+    speak("Séance terminée. "+(sf.att?(sf.made+" tirs marqués sur "+sf.att+", "+Math.round(sf.pct*100)+" pour cent. "):"")+
+      (sf.ftA?(sf.ftM+" lancers francs sur "+sf.ftA+"."):"")); }
+}
+function records(s){
+  var out=[],prev=S.hist.filter(function(h){ return h.att>=20&&h.pct!=null; });
+  var bp=prev.length?Math.max.apply(null,prev.map(function(h){ return h.pct; })):null;
+  if(s.att>=20&&s.pct!=null&&(bp==null||s.pct>bp)) out.push("Meilleure adresse sur une séance : "+pc(s.pct,0)+(bp!=null?" (ancien record "+pc(bp,0)+")":""));
+  var bs=S.hist.length?Math.max.apply(null,S.hist.map(function(h){ return h.best||0; })):0;
+  if(s.best>bs&&s.best>=5) out.push("Nouvelle plus longue série : "+s.best+" tirs d'affilée");
+  var bf=S.hist.filter(function(h){ return h.ftA>=10; });
+  var bfp=bf.length?Math.max.apply(null,bf.map(function(h){ return h.ftPct; })):null;
+  if(s.ftA>=10&&s.ftPct!=null&&(bfp==null||s.ftPct>bfp)) out.push("Record aux lancers francs : "+pc(s.ftPct,0));
+  return out;
+}
+function renderReportScreen(){
+  var ss=sessOf(S.run.src),s=summarize(S.cur),tot=S.run.secs.reduce(function(a,b){ return a+b; },0);
+  var recs=records(s),h="";
+  recs.forEach(function(t){ h+='<div class="record">'+trophy()+'<div><b>'+esc(t)+'</b></div></div>'; });
+  h+='<div class="card"><h3 style="margin-bottom:6px">Durée des blocs</h3>';
+  ss.b.forEach(function(b,i){ h+='<div class="reportrow"><div class="bn">'+(i+1)+'</div><div class="rt">'+esc(tok(b.t))+
+    '<div class="note">'+blockMin(ss,i)+' min visées</div></div><div class="rv">'+mmss(S.run.secs[i])+'</div></div>'; });
+  h+='<div class="reportrow"><div class="bn" style="background-image:none;background:var(--ink);color:var(--bg)">Σ</div>'+
+     '<div class="rt">Séance complète</div><div class="rv">'+mmss(tot)+'</div></div></div>';
+  h+='<div class="card"><h3 style="margin-bottom:12px">Chiffres</h3><div class="kpis">'+
+    '<div class="kpi"><b>'+(s.pct==null?"—":Math.round(s.pct*100)+"%")+'</b><i>adresse</i></div>'+
+    '<div class="kpi"><b>'+s.made+'</b><i>marqués sur '+s.att+'</i></div>'+
+    '<div class="kpi"><b>'+s.best+'</b><i>meilleure série</i></div>'+
+    '<div class="kpi"><b>'+pc(s.ftPct,0)+'</b><i>lancers francs ('+s.ftM+'/'+s.ftA+')</i></div>'+
+    (S.mode==="avance"?'<div class="kpi"><b>'+pc(s.pur,0)+'</b><i>ficelles</i></div>'+
+      '<div class="kpi"><b>'+(s.miss.court+s.miss.long+s.miss.gauche+s.miss.droite)+'</b><i>ratés typés</i></div>':'')+'</div></div>';
+  if(S.mode==="avance") h+='<div class="card"><h3 style="margin-bottom:8px">Direction des ratés</h3>'+missCards(s)+'</div>';
+  h+='<div class="card"><h3 style="margin-bottom:4px">Diagnostic</h3>'+diagnose(s).join("")+'</div>';
+  if(S.mode==="avance"&&S.cur.shots.some(function(x){ return x.z!=null; }))
+    h+='<div class="card"><h3 style="margin-bottom:8px">Carte de chaleur</h3><div id="repCourt"></div>'+
+       '<div class="row" style="margin-top:10px"><button class="btn small quiet" id="replayBtn">Rejouer les tirs</button>'+
+       '<span class="note" id="replayTxt"></span></div></div>';
+  h+='<div class="card"><label class="fld" for="forme" style="margin-top:0">Forme du jour : <span id="formeVal" class="num">'+S.cur.forme+'</span>/10</label>'+
+     '<input type="range" id="forme" min="1" max="10" step="1" value="'+S.cur.forme+'">'+
+     '<div class="adv"><label class="fld" for="video">Lien vidéo</label><input type="text" id="video" placeholder="https://" value="'+esc(S.cur.video)+'"></div>'+
+     '<label class="fld" for="note">Sensations</label><textarea id="note" placeholder="Le tilt, le coude, la poussée…">'+esc(S.cur.note)+'</textarea></div>';
+  $("runBody").innerHTML=h; $("runBody").scrollTop=0;
+  $("runFoot").innerHTML='<button class="btn primary wide" id="saveSess">Enregistrer la séance</button>'+
+    '<div class="row" style="margin-top:8px"><button class="btn small quiet" id="backBlock">Revenir au bloc 3</button>'+
+    '<span class="spacer"></span><button class="btn small quiet" id="trashSess" style="color:var(--danger)">Annuler la séance</button></div>';
+  if($("repCourt")){
+    $("repCourt").innerHTML=courtBase("rep");
+    drawHeat("rep",S.cur.shots); drawZones("rep",zoneStats(S.cur.shots)); drawShots("rep",S.cur.shots);
+    $("replayBtn").onclick=function(){ replay("rep",S.cur.shots,"replayTxt"); };
+  }
+  $("forme").oninput=function(){ S.cur.forme=+this.value; $("formeVal").textContent=this.value; save(); };
+  if($("video")) $("video").oninput=function(){ S.cur.video=this.value; save(); };
+  $("note").oninput=function(){ S.cur.note=this.value; save(); };
+  $("saveSess").onclick=saveSession;
+  $("backBlock").onclick=function(){ S.run.phase="block"; S.run.idx=2; save(); renderRun(); };
+  $("trashSess").onclick=function(){
+    ask("Elle ne sera pas enregistrée et les tirs saisis seront perdus.",cancelSession,
+        {title:"Annuler la séance ?",yes:"Annuler la séance",no:"Revenir",danger:true}); };
+}
+var replayT=null;
+function replay(uid,shots,txtId){
+  if(replayT){ clearInterval(replayT); replayT=null; }
+  var i=0,n=shots.length,txt=$(txtId);
+  drawShots(uid,shots,false,0);
+  replayT=setInterval(function(){
+    i++; drawShots(uid,shots,true,i);
+    if(txt){ var sub=shots.slice(0,i),m=sub.filter(function(x){ return x.made; }).length;
+      txt.textContent="tir "+i+" sur "+n+" · "+Math.round(m/i*100)+"%"; }
+    if(i>=n){ clearInterval(replayT); replayT=null; }
+  },160);
+}
+function saveSession(){
+  var s=summarize(S.cur),ss=sessOf(S.run.src),src=S.run.src;
+  if(!s.att&&!s.ftA){
+    ask("Aucun tir n'a été enregistré. La garder quand même dans l'historique ?",commitSession,
+        {title:"Séance vide",yes:"Garder",no:"Revenir"});
+    return;
+  }
+  commitSession();
+}
+function commitSession(){
+  var s=summarize(S.cur),ss=sessOf(S.run.src),src=S.run.src;
+  var tot=S.run.secs.reduce(function(a,b){ return a+b; },0);
+  var recs=records(s);
+  S.hist.push({date:S.cur.date,time:hhmm(new Date()),srcType:src.type,
+    sess:(src.type==="prog"?PROG[src.i].s:src.i),progIdx:(src.type==="prog"?src.i:null),
+    label:(src.type==="prog"?("Séance "+(src.i+1)+" · "+ss.n):ss.n),
+    goal:goalFor(ss),mode:S.mode,secs:S.run.secs.slice(),durMin:Math.max(1,Math.round(tot/60)),
+    att:s.att,made:s.made,swish:s.swish,best:s.best,pct:s.pct,pur:s.pur,miss:s.miss,
+    ftA:s.ftA,ftM:s.ftM,ftPct:s.ftPct,forme:S.cur.forme,video:S.cur.video,note:S.cur.note,
+    zones:zoneStats(S.cur.shots),shots:S.cur.shots.filter(function(x){ return x.x!=null; }).map(function(x){
+      return {x:x.x,y:x.y,z:x.z,made:x.made?1:0,sw:x.swish?1:0}; }),records:recs});
+  var adv=false;
+  if(S.plan.active&&src.type==="prog"&&src.i===S.plan.done&&S.plan.done<PROG.length){ S.plan.done++; adv=true; }
+  S.cur=null; S.run=null; hfOn=false; $("hf").classList.remove("on"); save();
+  closeRunner(); renderAll(); go("report");
+  toast(recs.length?"Record battu":(adv?("Séance validée · "+S.plan.done+"/"+PROG.length):"Séance enregistrée"));
+}
+
+/* ================= diagnostic ================= */
+function diagnose(s){
+  function D(x){ return tok(x); }
+  if(!s.att&&!s.ftA) return ['<p class="empty">Aucun tir enregistré sur cette séance.</p>'];
+  var out=[];
+  if(s.pct!=null) out.push('<div class="diag">Adresse à <b>'+pc(s.pct,0)+'</b> sur '+s.att+' tirs. '+
+    (s.pct<.30?"Sous 30 %, la distance dépasse ta mécanique du jour : rapproche-toi du panier et reconstruis."
+             :"Au-dessus de 30 %, tes appuis tiennent : tu peux garder cette distance.")+'</div>');
+  if(s.best>=5) out.push('<div class="diag">Meilleure série : <b>'+s.best+' tirs d\'affilée</b>. Les séries longues prouvent qu\'un geste se répète à l\'identique.</div>');
+  if(S.mode==="avance"){
+    var lat=s.miss.gauche+s.miss.droite,dep=s.miss.court+s.miss.long,tot=lat+dep;
+    if(tot===0) out.push('<div class="diag">Aucune direction de raté notée. C\'est elle qui rend le diagnostic possible.</div>');
+    else if(lat>dep) out.push('<div class="diag"><b>L\'alignement lâche.</b> '+lat+' ratés sur les côtés contre '+dep+' en profondeur. Reprends le tilt à {H} et surveille le coude, qui sort souvent en fin de série.</div>');
+    else if(dep>lat){ var wch=s.miss.court>=s.miss.long?"court":"long";
+      out.push('<div class="diag"><b>Le dosage lâche.</b> '+dep+' ratés en profondeur contre '+lat+' sur les côtés, surtout '+wch+'. '+
+        (wch==="court"?"Tu tires avec les bras : fléchis davantage avant la réception."
+                     :"Ton tir est trop tendu : monte le coude au-dessus des yeux pour ouvrir la parabole.")+'</div>'); }
+    else out.push('<div class="diag">Ratés répartis à parts égales entre côtés et profondeur. Plutôt de la fatigue que de la mécanique.</div>');
+    if(s.pur!=null&&s.made>=10) out.push('<div class="diag"><b>'+pc(s.pur,0)+'</b> de ficelles. '+
+      (s.pur<.25?"Sous 25 %, beaucoup de tirs rentrent par l'anneau : le lâcher varie encore."
+               :"Au-dessus de 25 %, ton lâcher est régulier — le geste est stabilisé.")+'</div>');
+  }
+  if(s.ftA>=5) out.push('<div class="diag">Lancers francs à <b>'+pc(s.ftPct,0)+'</b> ('+s.ftM+'/'+s.ftA+'). Sans défense ni fatigue, c\'est le chiffre le plus honnête de la séance.</div>');
+  return out.map(tok);
+}
+
+function missCards(s){
+  var keys=[["court","Court"],["long","Long"],["gauche","Gauche"],["droite","Droite"]];
+  var tot=keys.reduce(function(a,k){ return a+s.miss[k[0]]; },0),dom=null,mx=0;
+  keys.forEach(function(k){ if(s.miss[k[0]]>mx){ mx=s.miss[k[0]]; dom=k[0]; } });
+  if(!tot) return '<p class="empty">Aucune direction notée pour l\'instant.</p>';
+  return '<div class="missgrid">'+keys.map(function(k){
+    var v=s.miss[k[0]],pct=Math.round(v/tot*100);
+    return '<div class="misscard'+(k[0]===dom?" dom":"")+'"><i>'+k[1]+'</i><b class="num">'+pct+'%</b>'+
+      '<span class="num">'+v+' tir'+(v>1?"s":"")+'</span></div>'; }).join("")+'</div>';
+}
+
+/* ================= plan ================= */
+var calCursor=new Date();
+function renderPlan(){
+  var p=S.plan,tot=PROG.length;
+  if(!p.active){
+    $("planCard").innerHTML='<h3>Programme d\'un mois</h3>'+
+      '<p class="lede">Vingt séances en quatre blocs : reconstruction de la mécanique, extension vers le middle range, mouvement, puis intensité et tests.</p>'+
+      '<p class="note">Il avance au rythme de <b>tes séances clôturées</b>, jamais du calendrier.</p>'+
+      '<button class="btn primary wide" id="startPlan" style="margin-top:14px">Démarrer le programme</button>';
+    $("startPlan").onclick=function(){ S.plan={active:true,start:ymd(),done:0}; save(); renderPlan(); renderHome(); toast("Programme démarré"); };
+    $("progList").style.display="none";
+  } else {
+    $("progList").style.display="";
+    $("planCard").innerHTML='<h3>Programme d\'un mois</h3>'+
+      '<p class="lede">'+p.done+' séance'+(p.done>1?"s":"")+' sur '+tot+' · démarré le '+frDate(p.start||ymd())+'</p>'+
+      '<div class="kpis"><div class="kpi"><b>'+dayStreak()+'</b><i>jours d\'affilée · record '+bestStreak()+'</i></div>'+
+      '<div class="kpi"><b>'+weekCount()+'/'+S.wkGoal+'</b><i>séances cette semaine</i></div></div>'+
+      '<div class="row" style="margin-top:14px"><button class="btn small quiet" id="stopPlan">Quitter</button>'+
+      '<button class="btn small quiet" id="resetPlan">Repartir à la séance 1</button></div>';
+    $("stopPlan").onclick=function(){ ask("Tu pourras le relancer plus tard, ton historique est conservé.",
+      function(){ S.plan.active=false; save(); renderPlan(); renderHome(); },{title:"Quitter le programme ?",yes:"Quitter"}); };
+    $("resetPlan").onclick=function(){ ask("Le compteur repart à la première séance.",
+      function(){ S.plan.done=0; S.plan.start=ymd(); save(); renderPlan(); renderHome(); },{title:"Repartir à la séance 1 ?",yes:"Repartir"}); };
+    var h='<h3 style="margin-bottom:4px">Les 20 séances</h3><p class="lede">Lance celle que tu veux : seule la suivante fait avancer le compteur.</p>',w=0;
+    PROG.forEach(function(e,i){
+      if(e.w!==w){ w=e.w; h+='<div class="note" style="margin:14px 0 6px;font-weight:700">Bloc '+w+' — '+PHASES[w-1]+'</div>'; }
+      var ss=SESSIONS[e.s],st=i<p.done?"done":(i===p.done?"next":"");
+      h+='<div class="sess" data-p="'+i+'"><div class="thumb" style="width:52px;height:52px">'+thumb(e.s)+'</div>'+
+        '<div style="min-width:0"><div class="t">'+(i+1)+'. '+esc(ss.n)+'</div>'+
+        '<div class="m">'+esc(ss.dist)+' · '+(ss.goal?goalFor(ss)+" marqués":"lancers francs")+'</div></div>'+
+        '<div class="go" style="'+(st==="done"?"background:var(--made);color:var(--surface)":st==="next"?"background-image:linear-gradient(140deg,var(--accent),var(--accent2));color:var(--accent-ink)":"")+'">'+
+        (st==="done"?"✓":"›")+'</div></div>';
+    });
+    $("progList").innerHTML=h;
+    each("#progList [data-p]",function(el){ el.onclick=function(){ preview({type:"prog",i:+el.dataset.p}); }; });
+    renderCal();
+  }
+}
+function renderCal(){
+  var y=calCursor.getFullYear(),m=calCursor.getMonth();
+  $("calTitle").textContent=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"][m]+" "+y;
+  var by={}; S.hist.forEach(function(h){ if(!by[h.date]) by[h.date]={p:0,f:0}; by[h.date][h.srcType==="prog"?"p":"f"]++; });
+  var first=new Date(y,m,1),sd=(first.getDay()+6)%7,nd=new Date(y,m+1,0).getDate(),today=ymd(),c="";
+  for(var i=0;i<sd;i++) c+='<div class="cell out"></div>';
+  for(var d=1;d<=nd;d++){ var k=y+"-"+String(m+1).padStart(2,"0")+"-"+String(d).padStart(2,"0"),e=by[k];
+    c+='<div class="cell'+(e?(e.p?" done":" free"):"")+(k===today?" today":"")+'">'+d+'</div>'; }
+  $("cal").innerHTML=c;
+}
+
+/* ================= rapport ================= */
+function allZones(){
+  var z=[];for(var i=0;i<5;i++)z.push({att:0,made:0});
+  S.hist.forEach(function(h){ (h.zones||[]).forEach(function(v,i){ z[i].att+=v.att; z[i].made+=v.made; }); });
+  return z;
+}
+function renderReport(){
+  var H=S.hist,last=H[H.length-1];
+  $("lastCard").innerHTML = last
+    ? (last.records&&last.records.length?last.records.map(function(t){ return '<div class="record">'+trophy()+'<div><b>'+esc(t)+'</b></div></div>'; }).join(""):"")+
+      '<h3 style="margin-bottom:4px">Dernière séance</h3><p class="lede">'+esc(last.label)+' · '+frDate(last.date)+(last.time?" à "+last.time:"")+'</p>'+
+      '<div class="kpis"><div class="kpi"><b>'+pc(last.pct,0)+'</b><i>adresse</i></div>'+
+      '<div class="kpi"><b>'+last.made+'/'+last.att+'</b><i>tirs marqués</i></div>'+
+      '<div class="kpi"><b>'+(last.durMin||0)+' min</b><i>durée totale</i></div>'+
+      '<div class="kpi"><b>'+pc(last.ftPct,0)+'</b><i>lancers francs</i></div></div>'+
+      (last.secs?'<div style="margin-top:12px">'+last.secs.map(function(v,i){ return '<div class="reportrow"><div class="bn">'+(i+1)+'</div><div class="rt">Bloc '+(i+1)+'</div><div class="rv">'+mmss(v)+'</div></div>'; }).join("")+'</div>':'')
+    : '<h3>Aucune séance</h3><p class="lede" style="margin:6px 0 0">Lance ta première séance depuis l\'onglet Entraînement.</p>';
+
+  var z=allZones(),hasZ=z.some(function(v){ return v.att>0; });
+  $("mapCard").style.display=hasZ?"":"none";
+  if(hasZ){
+    $("mapCard").innerHTML='<h3 style="margin-bottom:4px">Carte de chaleur</h3>'+
+      '<p class="lede">Toutes tes séances cumulées, zone par zone.</p><div id="globCourt"></div>'+
+      '<div class="legend"><span><i class="dot" style="background:var(--miss)"></i>sous 25 %</span>'+
+      '<span><i class="dot" style="background:var(--gold)"></i>autour de 35 %</span>'+
+      '<span><i class="dot" style="background:var(--made)"></i>au-dessus de 45 %</span></div>';
+    $("globCourt").innerHTML=courtBase("glob");
+    var allShots=[];
+    S.hist.forEach(function(x){ (x.shots||[]).forEach(function(sh){ allShots.push({x:sh.x,y:sh.y,made:!!sh.made}); }); });
+    drawHeat("glob",allShots); drawZones("glob",z);
+  }
+
+  var box=$("chart");
+  if(H.length<2) box.innerHTML='<p class="empty">Deux séances et la courbe apparaît.</p>';
+  else{
+    var W=600,Ht=210,pad=32,n=H.length;
+    var xs=function(i){ return pad+i*(W-pad*1.4)/(n-1); },ys=function(v){ return Ht-pad-v*(Ht-pad*1.6); };
+    var g='<svg viewBox="0 0 '+W+' '+Ht+'" style="width:100%;height:auto">';
+    [0,.25,.5,.75,1].forEach(function(v){
+      g+='<line x1="'+pad+'" y1="'+ys(v)+'" x2="'+(W-8)+'" y2="'+ys(v)+'" stroke="var(--line)"/>'+
+         '<text x="0" y="'+(ys(v)+4)+'" fill="var(--mute)" font-size="11">'+(v*100)+'%</text>'; });
+    function line(get,col){ var d="",k=0,o="",pts=[];
+      H.forEach(function(s,i){ var v=get(s); if(v==null)return; pts.push([xs(i),ys(v)]); d+=(k++?" L ":"M ")+xs(i)+" "+ys(v); });
+      if(!d) return "";
+      o='<path d="'+d+'" fill="none" stroke="'+col+'" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" style="stroke-dasharray:1600;stroke-dashoffset:1600;animation:draw 1s ease forwards"/>';
+      pts.forEach(function(p2){ o+='<circle cx="'+p2[0]+'" cy="'+p2[1]+'" r="3.5" fill="'+col+'"/>'; });
+      return o; }
+    var P=paletteOf();
+    box.innerHTML=g+line(function(s){ return s.pct; },P.p1)+line(function(s){ return s.ftPct; },P.made)+'</svg>';
+  }
+  var st=dayStreak();
+  $("streakCard").innerHTML='<div class="streakrow"><div class="flamebig">'+
+    '<svg viewBox="0 0 24 24" fill="none"><path d="M12 3c1.8 3.4.6 5.4-.8 7-1.6 1.8-3.2 3.3-3.2 5.8A4.9 4.9 0 0 0 12 21a5 5 0 0 0 5-5.2c0-3.4-2.4-4.6-2.4-7.6 0 0-1.3 1.2-1.6 2.8C12.4 8.6 13.6 6 12 3z" stroke="var(--gold)" stroke-width="1.6" fill="rgba(255,176,32,.18)"/></svg>'+
+    '<b class="num">'+st+'</b></div><div><div style="font-weight:700">Série de jours</div>'+
+    '<div class="note">'+(st?(st+" jour"+(st>1?"s":"")+" consécutif"+(st>1?"s":"")+" · record "+bestStreak()):"Reprends aujourd\'hui pour relancer la série")+'</div></div></div>';
+  var tA=0,tM=0,tS=0,fA=0,fM=0,bs=0,mn=0;
+  H.forEach(function(s){ tA+=s.att;tM+=s.made;tS+=s.swish;fA+=s.ftA;fM+=s.ftM;mn+=(s.durMin||0); if(s.best>bs)bs=s.best; });
+  $("totals").innerHTML='<table><tbody>'+
+    '<tr><td>Tirs marqués</td><td class="n">'+tM+' / '+tA+'</td></tr>'+
+    '<tr><td>Adresse cumulée</td><td class="n">'+pc(tA?tM/tA:null)+'</td></tr>'+
+    '<tr><td>Ficelles</td><td class="n">'+pc(tM?tS/tM:null)+'</td></tr>'+
+    '<tr><td>Lancers francs</td><td class="n">'+pc(fA?fM/fA:null)+' ('+fM+'/'+fA+')</td></tr>'+
+    '<tr><td>Record de série</td><td class="n">'+bs+'</td></tr>'+
+    '<tr><td>Temps sur le terrain</td><td class="n">'+Math.floor(mn/60)+' h '+(mn%60)+'</td></tr>'+
+    '<tr><td>Jours d\'affilée</td><td class="n">'+dayStreak()+' · record '+bestStreak()+'</td></tr>'+
+    '<tr><td>Séances</td><td class="n">'+H.length+(S.plan.active?" · programme "+S.plan.done+"/"+PROG.length:"")+'</td></tr></tbody></table>';
+  var h='';
+  if(!H.length) h='<p class="empty">Rien pour l\'instant.</p>';
+  else{ h='<table><tbody>';
+    H.slice().reverse().forEach(function(s,ri){ var i=H.length-1-ri;
+      h+='<tr data-h="'+i+'" style="cursor:pointer"><td><b>'+esc(s.label)+'</b><div class="note">'+frDate(s.date)+
+        (s.time?" · "+s.time:"")+' · '+(s.durMin||0)+' min · '+(s.mode==="avance"?"avancé":"standard")+'</div></td>'+
+        '<td class="n"><b>'+pc(s.pct,0)+'</b><div class="note">LF '+pc(s.ftPct,0)+'</div></td></tr>'; });
+    h+='</tbody></table>'; }
+  $("history").innerHTML=h;
+  each("#history [data-h]",function(tr){ tr.onclick=function(){ openDetail(+tr.dataset.h); }; });
+}
+function openDetail(i){
+  var s=S.hist[i]; if(!s) return;
+  var zt=(s.zones||[]).map(function(v,k){ return v.att?('<tr><td>'+ZONES[k]+'</td><td class="n">'+v.made+'/'+v.att+'</td><td class="n">'+pc(v.made/v.att,0)+'</td></tr>'):""; }).join("");
+  $("detailBody").innerHTML='<div class="row"><h2 style="flex:1">'+esc(s.label)+'</h2><button class="btn small quiet" data-close="detailSheet">Fermer</button></div>'+
+    '<p class="lede">'+frDate(s.date)+(s.time?" à "+s.time:"")+' · '+(s.srcType==="prog"?"programme":"séance libre")+' · mode '+(s.mode==="avance"?"avancé":"standard")+'</p>'+
+    ((s.records&&s.records.length)?s.records.map(function(t){ return '<div class="record">'+trophy()+'<div><b>'+esc(t)+'</b></div></div>'; }).join(""):"")+
+    (s.secs?'<h3 style="margin:8px 0 4px">Blocs</h3>'+s.secs.map(function(v,k){ return '<div class="reportrow"><div class="bn">'+(k+1)+'</div><div class="rt">Bloc '+(k+1)+'</div><div class="rv">'+mmss(v)+'</div></div>'; }).join(""):'')+
+    '<h3 style="margin:14px 0 4px">Chiffres</h3><table><tbody>'+
+    '<tr><td>Tirs</td><td class="n">'+s.made+' / '+s.att+' · '+pc(s.pct,0)+'</td></tr>'+
+    (s.mode==="avance"?'<tr><td>Ficelles</td><td class="n">'+s.swish+' · '+pc(s.pur,0)+'</td></tr>':'')+
+    '<tr><td>Meilleure série</td><td class="n">'+s.best+'</td></tr>'+
+    '<tr><td>Lancers francs</td><td class="n">'+s.ftM+' / '+s.ftA+' · '+pc(s.ftPct,0)+'</td></tr>'+
+    '<tr><td>Forme</td><td class="n">'+s.forme+'/10</td></tr><tr><td>Durée</td><td class="n">'+(s.durMin||0)+' min</td></tr>'+
+    (s.mode==="avance"?'<tr><td>Ratés</td><td class="n">C '+s.miss.court+' · L '+s.miss.long+' · G '+s.miss.gauche+' · D '+s.miss.droite+'</td></tr>':'')+
+    '</tbody></table>'+
+    ((s.shots&&s.shots.length)?'<h3 style="margin:14px 0 6px">Carte des tirs</h3><div id="detCourt"></div>'+
+      '<div class="row" style="margin-top:10px"><button class="btn small quiet" id="detReplay">Rejouer</button><span class="note" id="detReplayTxt"></span></div>':'')+
+    (zt?'<h3 style="margin:14px 0 4px">Par zone</h3><table><tbody>'+zt+'</tbody></table>':'')+
+    (s.video?'<p class="note" style="margin-top:12px">Vidéo : <a href="'+esc(s.video)+'" target="_blank" rel="noopener">ouvrir</a></p>':'')+
+    (s.note?'<p style="margin-top:12px;font-size:14.5px">'+esc(s.note)+'</p>':'')+
+    '<button class="btn wide quiet small" id="delSession" style="margin-top:16px;color:var(--danger);border-color:var(--danger)">Retirer cette séance</button>';
+  $("detailSheet").classList.add("on");
+  if($("detCourt")){
+    var shots=s.shots.map(function(x){ return {x:x.x,y:x.y,z:x.z,made:!!x.made,swish:!!x.sw}; });
+    $("detCourt").innerHTML=courtBase("det");
+    drawHeat("det",shots); drawZones("det",s.zones); drawShots("det",shots);
+    $("detReplay").onclick=function(){ replay("det",shots,"detReplayTxt"); };
+  }
+  $("delSession").onclick=function(){
+    ask("Elle disparaîtra de l'historique et des statistiques.",function(){
+      if(S.hist[i].srcType==="prog"&&S.plan.done>0) S.plan.done--;
+      S.hist.splice(i,1); save(); $("detailSheet").classList.remove("on"); renderAll(); toast("Séance retirée");
+    },{title:"Retirer cette séance ?",yes:"Retirer",danger:true}); };
+}
+
+/* ================= export ================= */
+function dl(n,t,m){ var b=new Blob([t],{type:m||"text/plain;charset=utf-8"}),u=URL.createObjectURL(b);
+  var a=document.createElement("a"); a.href=u; a.download=n; document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(u); a.remove(); },0); }
+function toCsv(){
+  var head=["Date","Heure","Type","Séance","Mode","Bloc 1","Bloc 2","Bloc 3","Durée (min)","Objectif","Tentés","Réussis",
+   "% Adresse","Swishs","% Pureté","Série max","Ratés court","Ratés long","Ratés gauche","Ratés droite",
+   "LF tentés","LF réussis","% LF","Forme","Lien vidéo","Remarques"];
+  var rows=[head.join(";")];
+  S.hist.forEach(function(s){
+    function q(v){ return '"'+String(v==null?"":v).replace(/"/g,'""')+'"'; }
+    function p(v){ return v==null?"":String((v*100).toFixed(1)).replace(".",","); }
+    var sc=s.secs||[0,0,0];
+    rows.push([q(s.date),q(s.time||""),q(s.srcType==="prog"?"Programme":"Libre"),q(s.label),
+      q(s.mode==="avance"?"Avancé":"Standard"),q(mmss(sc[0])),q(mmss(sc[1])),q(mmss(sc[2])),s.durMin||"",
+      s.goal,s.att,s.made,p(s.pct),s.swish,p(s.pur),s.best,s.miss.court,s.miss.long,s.miss.gauche,s.miss.droite,
+      s.ftA,s.ftM,p(s.ftPct),s.forme,q(s.video),q(s.note)].join(";")); });
+  return "\ufeff"+rows.join("\r\n");
+}
+
+/* ================= PWA ================= */
+function iconDataUrl(size){ return "";
+}
+function _unusedIcon(size){
+  try{
+    var c=document.createElement("canvas"); c.width=c.height=size;
+    var x=c.getContext("2d"),P=paletteOf(),g=x.createLinearGradient(0,0,size,size);
+    g.addColorStop(0,P.p1); g.addColorStop(1,P.p2);
+    x.fillStyle=g; x.fillRect(0,0,size,size);
+    var r=size*.30,cx=size/2,cy=size/2;
+    x.strokeStyle="rgba(255,255,255,.95)"; x.lineWidth=size*.045; x.lineCap="round";
+    x.beginPath(); x.arc(cx,cy,r,0,Math.PI*2); x.stroke();
+    x.beginPath(); x.moveTo(cx-r,cy); x.lineTo(cx+r,cy); x.stroke();
+    x.beginPath(); x.moveTo(cx,cy-r); x.lineTo(cx,cy+r); x.stroke();
+    x.beginPath(); x.ellipse(cx,cy,r*.5,r,0,0,Math.PI*2); x.stroke();
+    return c.toDataURL("image/png");
+  }catch(e){ return ""; }
+}
+function buildManifest(){ /* manifeste servi en fichier statique */ }
+if("serviceWorker" in navigator && location.protocol!=="file:"){
+  window.addEventListener("load",function(){
+    navigator.serviceWorker.register("sw.js").catch(function(){});
+  });
+}
+var deferredPrompt=null;
+window.addEventListener("beforeinstallprompt",function(e){ e.preventDefault(); deferredPrompt=e; renderInstall(); });
+window.addEventListener("appinstalled",function(){ deferredPrompt=null; renderInstall(); toast("Application installée"); });
+function standalone(){ return window.matchMedia("(display-mode: standalone)").matches||window.navigator.standalone===true; }
+function renderInstall(){
+  var t=$("installTxt"),b=$("installBtn");
+  if(standalone()){ t.textContent="L'application est déjà installée : tu l'utilises en plein écran, hors ligne, et les rappels fonctionnent comme ceux d'une vraie app.";
+    b.style.display="none"; return; }
+  b.style.display="";
+  if(deferredPrompt){ t.textContent="Ton navigateur peut l'installer en un geste : elle s'ouvrira en plein écran, sans barre d'adresse, et fonctionnera hors ligne."; return; }
+  var ua=navigator.userAgent,iOS=/iPad|iPhone|iPod/.test(ua),
+      desk=!/Android|iPad|iPhone|iPod/.test(ua);
+  t.innerHTML=iOS
+    ? "Sur iPhone : touche <b>Partager</b> en bas de Safari, puis <b>Sur l'écran d'accueil</b>."
+    : desk
+    ? "Sur ordinateur : dans Chrome ou Edge, clique sur l'icône d'installation à droite de la barre d'adresse, ou ouvre le menu puis <b>Installer Shooting Lab</b>. L'application aura sa propre fenêtre et son raccourci."
+    : "Sur Android : ouvre le menu <b>⋮</b> de Chrome, puis <b>Installer l'application</b>. Elle s'ouvrira en plein écran et fonctionnera sans réseau.";
+}
+$("installBtn").onclick=function(){
+  if(deferredPrompt){ deferredPrompt.prompt(); deferredPrompt.userChoice.then(function(){ deferredPrompt=null; renderInstall(); }); }
+  else toast("Suis les instructions ci-dessus");
+};
+
+/* ================= voix ================= */
+var frVoice=null;
+function pickVoice(){
+  try{ var vs=speechSynthesis.getVoices()||[];
+    frVoice=vs.filter(function(v){ return /^fr/i.test(v.lang); })[0]||null;
+  }catch(e){}
+}
+if("speechSynthesis" in window){ pickVoice(); speechSynthesis.onvoiceschanged=pickVoice; }
+function speak(t,force){
+  if(!S.voice.on&&!force) return;
+  if(!("speechSynthesis" in window)) return;
+  try{ var u=new SpeechSynthesisUtterance(t); u.lang="fr-FR"; u.rate=1.02; u.pitch=1;
+    if(frVoice) u.voice=frVoice;
+    speechSynthesis.cancel(); speechSynthesis.speak(u);
+  }catch(e){}
+}
+function sayScore(){
+  var s=summarize(S.cur);
+  if(!s.att) return;
+  speak(s.made+" marqués sur "+s.att+", "+Math.round(s.pct*100)+" pour cent");
+}
+function sayFt(){ speak(S.cur.ftM+" lancers francs sur "+S.cur.ftA); }
+function renderVoiceUI(){
+  $("voiceTgl").setAttribute("aria-pressed",String(S.voice.on));
+  $("voiceOpts").style.display=S.voice.on?"":"none";
+  $("voiceTimeTgl").setAttribute("aria-pressed",String(!!S.voice.time));
+  each("#voiceEvery button",function(b){ b.setAttribute("aria-pressed",String(+b.dataset.n===S.voice.every)); });
+  $("voiceState").textContent = ("speechSynthesis" in window)
+    ? (frVoice?("Voix utilisée : "+frVoice.name):"Aucune voix française détectée : la voix par défaut du téléphone sera utilisée.")
+    : "Ce navigateur ne gère pas la synthèse vocale.";
+}
+
+/* ================= mode mains libres ================= */
+var hfOn=false;
+function hfOpen(){
+  var b=curBlock();
+  hfOn=true; $("hf").classList.add("on");
+  tuto("handsfree");
+  $("hfMadeLbl").textContent=b.ft?"RENTRÉ":"MARQUÉ";
+  $("hfMissLbl").textContent=b.ft?"MANQUÉ":"RATÉ";
+  hfUpdate();
+  wakeOn();
+  speak(b.ft?"Mains libres. Lancers francs.":"Mains libres. Gauche marqué, droite raté.",false);
+  if(!b.ft&&S.mode==="avance") toast("Les ratés ne seront pas typés dans ce mode");
+}
+function hfClose(){
+  hfOn=false;
+  $("hf").classList.remove("on");
+  try{ speechSynthesis.cancel(); }catch(e){}
+  if(S.run&&$("runner").classList.contains("on")) renderRun();
+  else if(!S.run) closeRunner();
+  toast("Retour à la saisie normale");
+}
+function hfUpdate(){
+  var b=curBlock();
+  $("hfMic").classList.toggle("on",!!S.voice.on);
+  if(b.ft){
+    $("hfMadeN").textContent=S.cur.ftM;
+    $("hfMissN").textContent=S.cur.ftA-S.cur.ftM;
+    $("hfPct").textContent=S.cur.ftA?Math.round(S.cur.ftM/S.cur.ftA*100)+"%":"—";
+    $("hfSub").textContent="lancers francs";
+  } else {
+    var s=summarize(S.cur);
+    $("hfMadeN").textContent=s.made;
+    $("hfMissN").textContent=s.att-s.made;
+    $("hfPct").textContent=s.pct==null?"—":Math.round(s.pct*100)+"%";
+    $("hfSub").textContent=s.run>=2?("série "+s.run):"adresse";
+  }
+}
+function hfTap(el,made){
+  var b=curBlock();
+  el.classList.remove("tapped"); void el.offsetWidth; el.classList.add("tapped");
+  if(b.ft){ S.cur.ftA++; if(made) S.cur.ftM++; save();
+    try{ if(navigator.vibrate) navigator.vibrate(made?[16]:[10,50,10]); }catch(e){}
+    if(S.voice.on&&S.cur.ftA%5===0) sayFt();
+  } else {
+    addShot(made,false,null);
+  }
+  hfUpdate();
+}
+
+/* ================= son, veille, rappels ================= */
+var AC=null,soundOn=true,wl=null;
+function beep(f,dur,vol){
+  if(!soundOn) return;
+  try{ AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    if(AC.state==="suspended") AC.resume();
+    var o=AC.createOscillator(),g=AC.createGain();
+    o.type="sine"; o.frequency.value=f||880;
+    g.gain.setValueAtTime(vol||.18,AC.currentTime);
+    g.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+(dur||.18));
+    o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+(dur||.18));
+  }catch(e){}
+}
+function wakeOn(){ try{ if(navigator.wakeLock&&!wl) navigator.wakeLock.request("screen").then(function(s){ wl=s; }).catch(function(){}); }catch(e){} }
+function wakeOff(){ try{ if(wl){ wl.release(); wl=null; } }catch(e){} }
+function trainedToday(){ return S.hist.some(function(h){ return h.date===ymd(); }); }
+function renderRemindUI(){
+  $("remindTgl").setAttribute("aria-pressed",String(S.remind.on));
+  $("remindOpts").style.display=S.remind.on?"":"none";
+  $("remindTime").value=S.remind.time;
+  var st="";
+  if(!("Notification" in window)) st="Ce navigateur ne gère pas les notifications : le rappel s'affichera à l'ouverture.";
+  else if(Notification.permission==="granted") st=standalone()?"Notifications autorisées.":"Notifications autorisées. Installe l'application pour qu'elles arrivent même quand elle est fermée.";
+  else if(Notification.permission==="denied") st="Notifications refusées dans les réglages du navigateur.";
+  else st="Active pour autoriser les notifications.";
+  $("remindState").textContent=st;
+}
+var tick=0;
+setInterval(function(){
+  if(S.run&&S.run.running&&S.run.phase==="block"){
+    var b=curBlock(); S.run.secs[S.run.idx]++;
+    var sec=S.run.secs[S.run.idx],target=b.m*60,el=$("runClock");
+    if(el){ el.textContent=mmss(sec);
+      var C=2*Math.PI*94,frac=Math.min(1,sec/target);
+      var fg=document.querySelector(".clock .cfg"); if(fg) fg.setAttribute("stroke-dashoffset",C*(1-frac));
+      if(sec===target){ var ck=$("clock"); if(ck) ck.classList.add("over");
+        beep(880,.25,.24); setTimeout(function(){ beep(1180,.28,.24); },260);
+        if(S.voice.time&&S.voice.on) speak("Temps écoulé sur ce bloc"); } }
+    if(S.voice.on&&S.voice.time){
+      if(sec===target-120) speak("deux minutes");
+      else if(sec===target-60) speak("une minute");
+    }
+    if(sec%15===0) save();
+  }
+  if(++tick%30===0&&S.remind.on){
+    var now=new Date(),t=S.remind.time.split(":");
+    var due=new Date(now.getFullYear(),now.getMonth(),now.getDate(),+t[0],+t[1],0);
+    if(now>=due&&S.remind.last!==ymd()){
+      S.remind.last=ymd(); save();
+      if(!trainedToday()){
+        var ss=sessOf(nextSrc());
+        try{ if("Notification" in window&&Notification.permission==="granted")
+          new Notification("SHOT IQ — c'est l'heure de shooter",{body:"Au programme : "+ss.n+" · "+ss.dist}); }catch(e){}
+        toast("Rappel : c'est l'heure de shooter");
+      }
+    }
+  }
+},1000);
+
+/* ================= profil : écran et édition ================= */
+var ONB=[
+ {k:"hand",q:"Tu tires de quelle main ?",o:[["droitier","Droitier"],["gaucher","Gaucher"]],
+  h:"Toutes les consignes du guide sont retournées en conséquence."},
+ {k:"level",q:"Où en es-tu ?",o:[["deb","Débutant"],["inter","Intermédiaire"],["avance","Avancé"]],
+  h:"Ajuste le volume de tirs demandé à chaque séance."},
+ {k:"minutes",q:"Combien de temps as-tu, en général ?",o:[[20,"20 min"],[35,"35 min"],[50,"50 min"],[70,"70 min"]],
+  h:"La durée du corps de séance et les objectifs s'y adaptent."},
+ {k:"partner",q:"Tu t'entraînes plutôt…",o:[["seul","Seul"],["accompagne","Accompagné"]],
+  h:"Détermine le mode de saisie par défaut."}
+];
+function profBox(){
+  var P=S.profile;
+  $("profBox").innerHTML='<table><tbody>'+
+   '<tr><td>Main de tir</td><td class="n">'+(P.hand==="gaucher"?"Gaucher":"Droitier")+'</td></tr>'+
+   '<tr><td>Niveau</td><td class="n">'+(LEVELS[P.level]||LEVELS.inter).n+'</td></tr>'+
+   '<tr><td>Temps disponible</td><td class="n">'+P.minutes+' min</td></tr>'+
+   '<tr><td>Habituellement</td><td class="n">'+(P.partner==="accompagne"?"Accompagné":"Seul")+'</td></tr>'+
+   '<tr><td>Tilt des pieds</td><td class="n">'+tok("{H}")+'</td></tr>'+
+   '<tr><td>Pied avancé</td><td class="n">pied '+tok("{PIED}")+'</td></tr>'+
+   '</tbody></table>';
+}
+function openProfile(first){
+  var P=S.profile,draft={hand:P.hand,level:P.level,minutes:P.minutes,partner:P.partner,name:P.name||""};
+  function paint(){
+    $("onbBody").innerHTML=
+     '<div class="row"><h2 style="flex:1">'+(first?"Bienvenue":"Ton profil")+'</h2>'+
+     (first?'':'<button class="btn small quiet" data-close="onbSheet">Fermer</button>')+'</div>'+
+     '<p class="lede">'+(first?"Quatre questions, et l\'application se règle sur toi.":"Tout se recalcule immédiatement.")+'</p>'+
+     '<label class="fld" for="onbName">Ton prénom (facultatif)</label>'+
+     '<input type="text" id="onbName" value="'+esc(draft.name)+'" placeholder="Pour l\'accueil">'+
+     '<div class="onb" style="margin-top:6px">'+
+     ONB.map(function(q){
+       return '<div><label class="fld">'+q.q+'</label><div class="opt" data-k="'+q.k+'">'+
+        q.o.map(function(o){ return '<button data-v="'+o[0]+'" aria-pressed="'+(String(draft[q.k])===String(o[0]))+'">'+o[1]+'</button>'; }).join("")+
+        '</div><p class="note" style="margin-top:6px">'+q.h+'</p></div>'; }).join("")+
+     '</div>'+
+     '<button class="btn primary wide" id="onbSave" style="margin-top:16px">'+(first?"C\'est parti":"Enregistrer")+'</button>';
+    each("#onbBody .opt",function(g){
+      g.addEventListener("click",function(e){
+        var b=e.target.closest("button"); if(!b) return;
+        var v=b.dataset.v; draft[g.dataset.k]=(g.dataset.k==="minutes")?+v:v; paint(); });
+    });
+    $("onbName").oninput=function(){ draft.name=this.value; };
+    $("onbSave").onclick=function(){
+      S.profile={done:true,name:draft.name,hand:draft.hand,level:draft.level,minutes:draft.minutes,partner:draft.partner};
+      if(first) S.mode=(draft.partner==="accompagne")?"avance":"standard";
+      save(); $("onbSheet").classList.remove("on");
+      renderStatic(); applyLook(); renderAll(); profBox();
+      document.body.setAttribute("data-mode",S.mode);
+      each("#modeSeg button",function(x){ x.setAttribute("aria-pressed",String(x.dataset.mode===S.mode)); });
+      toast(first?"Profil enregistré":"Profil mis à jour");
+    };
+  }
+  paint(); $("onbSheet").classList.add("on");
+}
+
+/* ================= navigation ================= */
+var TABS=[
+ ["home","Entraînement",'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/>'],
+ ["plan","Programme",'<path d="M4 5h16v15H4zM4 9h16M9 3v4M15 3v4"/><path d="M8.5 14.5l2 2 4-4"/>'],
+ ["report","Rapport",'<path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/>'],
+ ["set","Réglages",'<circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9a2 2 0 1 1-2.8 2.8a1.7 1.7 0 0 0-2.9 1.2a2 2 0 1 1-4 0a1.7 1.7 0 0 0-2.9-1.2a2 2 0 1 1-2.8-2.8A1.7 1.7 0 0 0 3 15a2 2 0 1 1 0-4a1.7 1.7 0 0 0 1.2-2.9a2 2 0 1 1 2.8-2.8A1.7 1.7 0 0 0 10 4.1a2 2 0 1 1 4 0a1.7 1.7 0 0 0 2.9 1.2a2 2 0 1 1 2.8 2.8A1.7 1.7 0 0 0 21 11a2 2 0 1 1 0 4z"/>']
+];
+var TITLES={home:"Entraînement",plan:"Programme",report:"Rapport",set:"Réglages"};
+function pageHello(id){ var e=$("homeHello"); if(e) e.style.display=(id==="home")?"":"none"; }
+function go(id){
+  each(".view",function(v){ v.classList.toggle("on",v.id==="v-"+id); });
+  each("#tabs button",function(b){ b.setAttribute("aria-current",String(b.dataset.go===id)); });
+  setBanner();
+  if(id==="set"){ profBox(); renderVoiceUI(); renderTutoList(); }
+  window.scrollTo(0,0);
+  pageHello(id);
+  if(id==="home") renderHome();
+  if(id==="plan"){ renderPlan(); tuto("plan"); }
+  if(id==="report") tuto("report_tab");
+  if(id==="report") renderReport();
+  if(id==="set"){ renderInstall(); renderRemindUI(); }
+}
+$("tabs").innerHTML='<div class="navbrand"><img src="icons/icon-192.png" alt=""><span>SHOT<i style="font-style:normal;color:var(--accent)">IQ</i></span></div>'+
+ TABS.map(function(t){
+  return '<button data-go="'+t[0]+'"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">'+t[2]+'</svg>'+t[1]+'</button>'; }).join("");
+$("tabs").addEventListener("click",function(e){ var b=e.target.closest("button"); if(b) go(b.dataset.go); });
+document.addEventListener("click",function(e){ var c=e.target.closest("[data-close]"); if(c) $(c.dataset.close).classList.remove("on"); });
+each(".sheet",function(sh){ sh.addEventListener("click",function(e){ if(e.target===sh) sh.classList.remove("on"); }); });
+
+/* ================= init ================= */
+function renderStatic(){
+  $("pillars").innerHTML=PILLARS.map(function(p,i){
+    var fig=(typeof p[2]==="function")?p[2]():p[2];
+    return '<details'+(i===0?" open":"")+'><summary>'+(i+1)+'. '+tok(p[0])+'<span class="chev">›</span></summary>'+
+      '<div class="body"><div class="fig">'+fig+'<div class="figcap">'+tok(p[3])+'</div></div><p>'+tok(p[1])+'</p></div></details>'; }).join("");
+  $("rules").innerHTML=RULES.map(function(p){
+    return '<details><summary>'+tok(p[0])+'<span class="chev">›</span></summary><div class="body"><p>'+tok(p[1])+'</p></div></details>'; }).join("");
+  $("missFig").innerHTML=missFigSvg();
+  $("missGrid").innerHTML=MISSDIRS.map(function(m){
+    return '<button class="btn" data-miss="'+m[0]+'">'+m[2]+'<span>'+m[1]+'</span></button>'; }).join("");
+  $("pals").innerHTML=PALETTES.map(function(p){
+    return '<button class="pal" data-p="'+p.id+'"><span class="sw" style="background:linear-gradient(140deg,'+p.p1+','+p.p2+')"></span>'+
+      '<span><b>'+p.n+'</b><i>'+p.sub+'</i></span></button>'; }).join("")+
+    '<button class="pal" data-p="custom"><span class="sw" id="customSw" style="background:'+S.custom+'"></span><span><b>Libre</b><i>ta couleur</i></span></button>';
+  $("modeDoc").innerHTML=MODEDOC;
+  each("#modeSeg button",function(b){ b.setAttribute("aria-pressed",String(b.dataset.mode===S.mode)); });
+  document.body.setAttribute("data-mode",S.mode);
+}
+function renderAll(){ renderHome(); renderPlan(); renderReport(); }
+
+(function(){
+  var sp=$("splash"); if(!sp) return;
+  var done=false;
+  function bye(fast){
+    if(done) return; done=true;
+    if(fast===true){ if(sp.parentNode) sp.parentNode.removeChild(sp); return; }
+    sp.classList.add("toapp");            // le marbre s'efface, le navy prend la place
+    sp.style.animation="spOut .5s ease .2s forwards";
+    setTimeout(function(){ if(sp.parentNode) sp.parentNode.removeChild(sp); },740);
+  }
+
+  var v=$("splashVid"), limit=null;
+  // si la vidéo ne peut pas être lue, on montre sa dernière image un instant
+  function still(ms){ sp.classList.add("still"); clearTimeout(limit); limit=setTimeout(brand,ms||1400); }
+
+  // seconde phase : le logo et le nom de l'application
+  function brand(){
+    if(done) return;
+    clearTimeout(limit);
+    sp.classList.remove("still");
+    sp.classList.add("brand");
+    if(v){ try{ v.pause(); }catch(e){} }
+    limit=setTimeout(bye,2200);
+  }
+
+  // une seule fois par session : un rechargement ne rejoue pas l'animation
+  var seen=false;
+  try{ seen=sessionStorage.getItem("siq_splash")==="1"; sessionStorage.setItem("siq_splash","1"); }catch(e){}
+  var calm=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if(seen){ bye(true); return; }
+  if(calm){ if(v){ v.removeAttribute("autoplay"); v.remove(); } brand(); return; }
+
+  if(v){
+    v.src="media/splash-integral.mp4";
+    v.muted=false;                       // le son de la signature, si le navigateur l'autorise
+    v.volume=1;
+    v.addEventListener("ended",brand);
+    v.addEventListener("error",function(){ still(); });
+    v.addEventListener("playing",function(){
+      sp.classList.add("video");
+      clearTimeout(limit);
+      limit=setTimeout(brand,9000);      // garde-fou si l'événement de fin manque
+    });
+    var pr=v.play();
+    if(pr&&pr.catch) pr.catch(function(){
+      // lecture sonore refusée : on rejoue la version muette, sans rien demander
+      v.muted=true;
+      v.src="media/splash-muet.mp4";
+      var p2=v.play();
+      if(p2&&p2.catch) p2.catch(function(){ still(); });
+    });
+    setTimeout(function(){ if(!sp.classList.contains("video")&&!sp.classList.contains("brand")) still(); },1600);
+  } else still();
+})();
+
+load(); renderStatic(); applyLook(); renderRemindUI(); renderInstall(); renderVoiceUI(); profBox(); renderAll(); go("home");
+if(S.run&&S.cur) openRunner();
+if(!S.profile.done) setTimeout(function(){ openProfile(true); },400);
+
+$("runClose").onclick=askQuit;
+$("missSheet").addEventListener("click",function(e){
+  var b=e.target.closest("[data-miss]"); if(!b) return;
+  this.classList.remove("on"); addShot(false,false,b.getAttribute("data-miss")||null); });
+$("editGoal").onclick=function(){
+  askNumber("Combien de séances par semaine ?",S.wkGoal,1,7,function(v){ S.wkGoal=v; save(); renderHome(); }); };
+$("progMore").onclick=function(){ go("plan"); };
+$("allSess").onclick=function(){
+  $("pickList").innerHTML=SESSIONS.map(function(s,i){ return sessCard(i,s); }).join("");
+  each("#pickList [data-s]",function(el){ el.onclick=function(){ $("pickSheet").classList.remove("on"); preview({type:"free",i:+el.dataset.s}); }; });
+  $("pickSheet").classList.add("on"); };
+$("openSettings").onclick=function(){ go("set"); };
+$("editProfile").onclick=function(){ openProfile(false); };
+function renderTutoList(){
+  var el=$("tutoList"); if(!el) return;
+  el.innerHTML=Object.keys(TUTOS).map(function(k){
+    return '<div class="drill" style="padding:10px 0"><div class="idx">'+TUTOS[k].ic+'</div>'+
+      '<div><div class="t">'+esc(TUTOS[k].t)+'</div>'+
+      '<div class="d">'+(tutoSeen(k)?"déjà proposé":"pas encore vu")+'</div></div>'+
+      '<div class="go"><button class="btn small quiet" data-tuto="'+k+'">Voir</button></div></div>';
+  }).join("");
+  each("#tutoList [data-tuto]",function(b){ b.onclick=function(){ tuto(b.dataset.tuto,true); }; });
+}
+$("tutoReset").onclick=function(){ S.tuto={}; save(); renderTutoList(); toast("Tutoriels réinitialisés"); };
+$("voiceTgl").onclick=function(){ S.voice.on=!S.voice.on; save(); renderVoiceUI();
+  if(S.voice.on) speak("Voix activée",true); };
+$("voiceTimeTgl").onclick=function(){ S.voice.time=!S.voice.time; save(); renderVoiceUI(); };
+$("voiceEvery").addEventListener("click",function(e){ var b=e.target.closest("button"); if(!b) return;
+  S.voice.every=+b.dataset.n; save(); renderVoiceUI(); });
+$("voiceTest").onclick=function(){ speak("Quinze marqués sur trente-deux, quarante-sept pour cent",true); };
+$("hfMade").onclick=function(){ hfTap(this,true); };
+$("hfMiss").onclick=function(){ hfTap(this,false); };
+$("hfQuit").onclick=function(){ hfClose(); };
+$("hfExit").onclick=function(e){ e.stopPropagation(); hfClose(); };
+$("hfMic").onclick=function(){ S.voice.on=!S.voice.on; save(); renderVoiceUI(); hfUpdate();
+  speak(S.voice.on?"Annonces activées":"",true); };
+$("hfUndo").onclick=function(){
+  var b=curBlock();
+  if(b.ft){ if(S.cur.ftA>0){ S.cur.ftA--; if(S.cur.ftM>S.cur.ftA) S.cur.ftM=S.cur.ftA; save(); } }
+  else if(S.cur.shots.length){ S.cur.shots.pop(); save(); }
+  hfUpdate(); };
+$("sunBtn").onclick=function(){ S.sun=!S.sun; save(); applyLook(); toast(S.sun?"Mode plein soleil":"Mode normal"); };
+$("sunTgl").onclick=function(){ S.sun=!S.sun; save(); applyLook(); };
+$("modeSeg").addEventListener("click",function(e){ var b=e.target.closest("button"); if(!b) return;
+  S.mode=b.dataset.mode; save(); document.body.setAttribute("data-mode",S.mode);
+  each("#modeSeg button",function(x){ x.setAttribute("aria-pressed",String(x.dataset.mode===S.mode)); });
+  if($("runner").classList.contains("on")) renderRun();
+  toast(S.mode==="standard"?"Mode Standard":"Mode Avancé"); });
+$("themeSeg").addEventListener("click",function(e){ var b=e.target.closest("button"); if(!b) return;
+  S.theme=b.dataset.theme; save(); applyLook(); renderAll(); });
+$("pals").addEventListener("click",function(e){ var b=e.target.closest(".pal"); if(!b) return;
+  S.pal=b.dataset.p; save(); applyLook(); renderAll(); toast("Palette "+(S.pal==="custom"?"libre":paletteOf().n)); });
+$("customColor").oninput=function(){ S.custom=this.value.toUpperCase(); S.pal="custom";
+  var sw=$("customSw"); if(sw) sw.style.background=S.custom;
+  save(); applyLook(); renderAll(); };
+$("remindTgl").onclick=function(){ S.remind.on=!S.remind.on; save(); renderRemindUI();
+  if(S.remind.on&&"Notification" in window&&Notification.permission==="default") Notification.requestPermission().then(renderRemindUI); };
+$("remindTime").onchange=function(){ S.remind.time=this.value; S.remind.last=null; save(); renderRemindUI(); };
+$("soundTgl").onclick=function(){ soundOn=!soundOn; this.setAttribute("aria-pressed",String(soundOn)); if(soundOn) beep(760,.08,.15); };
+$("calPrev").onclick=function(){ calCursor.setMonth(calCursor.getMonth()-1); renderCal(); };
+$("calNext").onclick=function(){ calCursor.setMonth(calCursor.getMonth()+1); renderCal(); };
+$("expCsv").onclick=function(){ if(!S.hist.length){ toast("Aucune séance à exporter"); return; }
+  dl("shot-iq.csv",toCsv(),"text/csv;charset=utf-8"); };
+$("expJson").onclick=function(){ dl("shot-iq-sauvegarde.json",JSON.stringify(S),"application/json"); };
+$("impJson").onclick=function(){ $("fileIn").click(); };
+$("fileIn").onchange=function(){
+  var f=this.files[0]; if(!f) return; var r=new FileReader();
+  r.onload=function(){
+    try{ var o=JSON.parse(r.result); if(!o||!Array.isArray(o.hist)) throw 0;
+      S.hist=o.hist; S.mode=o.mode||S.mode; S.theme=o.theme||S.theme; S.pal=o.pal||S.pal;
+      S.custom=o.custom||S.custom; S.sun=!!o.sun; S.wkGoal=o.wkGoal||S.wkGoal;
+      if(o.plan)S.plan=o.plan; if(o.remind)S.remind=o.remind;
+      if(o.profile)S.profile=o.profile; if(o.voice)S.voice=o.voice;
+      S.cur=null; S.run=null; save();
+      renderStatic(); applyLook(); renderRemindUI(); renderVoiceUI(); profBox(); renderAll(); go("report"); toast("Sauvegarde restaurée");
+    }catch(e){ toast("Fichier illisible"); } };
+  r.readAsText(f); this.value=""; };
+$("wipe").onclick=function(){
+  ask("Toutes les séances, le programme et les records seront effacés. C'est définitif.",function(){
+    S.hist=[]; S.plan={active:false,start:null,done:0}; S.cur=null; S.run=null;
+    save(); renderAll(); go("home"); toast("Tout est effacé");
+  },{title:"Tout effacer ?",yes:"Effacer définitivement",danger:true}); };
+
+/* ================= raccourcis clavier (ordinateur) ================= */
+document.addEventListener("keydown",function(e){
+  var t=e.target;
+  if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.isContentEditable)) return;
+  if(e.ctrlKey||e.metaKey||e.altKey) return;
+  var open=$("runner").classList.contains("on"), k=e.key.toLowerCase();
+  if($("hf").classList.contains("on")){
+    if(k==="arrowleft"||k==="m"){ e.preventDefault(); hfTap($("hfMade"),true); }
+    else if(k==="arrowright"||k==="r"){ e.preventDefault(); hfTap($("hfMiss"),false); }
+    else if(k==="z"||k==="backspace"){ e.preventDefault(); $("hfUndo").click(); }
+    else if(k==="escape"||k==="h"){ e.preventDefault(); hfClose(); }
+    return;
+  }
+  if(!open){
+    if(k>="1"&&k<="4"){ go(["home","plan","report","set"][+k-1]); }
+    return;
+  }
+  if(S.run&&S.run.phase==="report") return;
+  var b=curBlock();
+  if(k===" "){ e.preventDefault(); if($("runToggle")) $("runToggle").click(); }
+  else if((k==="m"||k==="arrowleft")&&(b.shoot||b.ft)){ e.preventDefault();
+    if(b.ft) $("ftMade").click(); else $("bMade").click(); }
+  else if((k==="r"||k==="arrowright")&&(b.shoot||b.ft)){ e.preventDefault();
+    if(b.ft) $("ftMiss").click(); else $("bMiss").click(); }
+  else if(k==="s"&&b.shoot&&S.mode==="avance"&&$("bSwish")){ e.preventDefault(); $("bSwish").click(); }
+  else if((k==="z"||k==="backspace")&&$("bUndo")){ e.preventDefault(); $("bUndo").click(); }
+  else if(k==="enter"&&$("runNext")){ e.preventDefault(); $("runNext").click(); }
+  else if(k==="h"&&$("hfBtn")){ e.preventDefault(); $("hfBtn").click(); }
+  else if(k==="escape"){ e.preventDefault(); $("runClose").click(); }
+});
+
+/* ================= bouton retour Android ================= */
+window.__androidBack=function(){
+  try{
+    var sh=document.querySelectorAll(".sheet.on");
+    if(sh.length){ sh[sh.length-1].classList.remove("on"); return true; }
+    if($("hf").classList.contains("on")){ hfClose(); return true; }
+    if($("runner").classList.contains("on")){ askQuit(); return true; }
+    var cur=document.querySelector("#tabs button[aria-current='true']");
+    if(cur&&cur.dataset.go!=="home"){ go("home"); return true; }
+  }catch(e){}
+  return false;
+};
+window.addEventListener("apppause",function(){ save(); });
+
+document.addEventListener("visibilitychange",function(){
+  if(document.visibilityState==="visible"){
+    if(S.cur&&S.cur.date!==ymd()){ S.cur=null; S.run=null; save(); $("runner").classList.remove("on"); }
+    renderHome(); }
+});
+window.addEventListener("beforeunload",save);
+
+})();
+</script>

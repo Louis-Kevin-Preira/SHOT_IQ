@@ -1,0 +1,46 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.fable.shotiq'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.fable.shotiq"
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+    }
+
+    // Signature de version : décommente et remplis si tu veux un APK publiable.
+    // Crée d'abord la clé :
+    //   keytool -genkey -v -keystore shotiq.jks -keyalg RSA -keysize 2048 -validity 10000 -alias shotiq
+    //
+    // signingConfigs {
+    //     release {
+    //         storeFile file("../../shotiq.jks")
+    //         storePassword System.getenv("STORE_PASSWORD")
+    //         keyAlias "shotiq"
+    //         keyPassword System.getenv("KEY_PASSWORD")
+    //     }
+    // }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            // signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'androidx.webkit:webkit:1.11.0'
+}

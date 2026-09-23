@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fond affiché par Android avant que la WebView ne soit prête :
+     le logo centré sur le navy de l'application, plutôt qu'un écran vide. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/app_background"/>
+    <item android:gravity="center">
+        <bitmap android:src="@mipmap/ic_launcher" android:gravity="center"/>
+    </item>
+</layer-list>

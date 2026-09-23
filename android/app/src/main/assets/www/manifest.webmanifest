@@ -1,0 +1,56 @@
+{
+  "name": "SHOT IQ",
+  "short_name": "SHOT IQ",
+  "description": "Carnet d'entraînement au tir : séances guidées, chronos, carte de chaleur et suivi de progression.",
+  "lang": "fr",
+  "dir": "ltr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "id": "shot-iq",
+  "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "any",
+  "background_color": "#0A1730",
+  "theme_color": "#22D3DB",
+  "categories": [
+    "sports",
+    "health",
+    "fitness"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Séance du jour",
+      "short_name": "Séance",
+      "url": "./index.html#seance"
+    },
+    {
+      "name": "Rapport",
+      "short_name": "Rapport",
+      "url": "./index.html#rapport"
+    }
+  ]
+}
