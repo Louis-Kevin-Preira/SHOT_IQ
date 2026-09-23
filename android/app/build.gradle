@@ -2,6 +2,11 @@ plugins {
     id 'com.android.application'
 }
 
+// Numéro de version : celui de l'exécution GitHub dans le cloud, 1 en local.
+// Calculé à part, avant le bloc android : écrit directement dans
+// versionCode, Groovy le lirait comme un appel de fonction.
+def ciVersion = Integer.parseInt(System.getenv("VERSION_CODE") ?: "1")
+
 android {
     namespace 'com.fable.shotiq'
     compileSdk 34
@@ -10,10 +15,10 @@ android {
         applicationId "com.fable.shotiq"
         minSdk 24
         targetSdk 34
-        // Le numéro monte à chaque compilation dans le cloud (numéro d'exécution
-        // GitHub), sinon Android refuse d'installer par-dessus la version en place.
-        versionCode (System.getenv("VERSION_CODE") ?: "1").toInteger()
-        versionName "1.0." + (System.getenv("VERSION_CODE") ?: "0")
+        // Le numéro monte à chaque compilation dans le cloud, sinon Android
+        // refuse d'installer par-dessus la version en place.
+        versionCode ciVersion
+        versionName "1.0.${ciVersion}"
     }
 
     // Clé de signature fixe, incluse dans le projet.
